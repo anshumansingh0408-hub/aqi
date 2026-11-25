@@ -1,0 +1,243 @@
+{% extends "base.html" %}
+
+{% block title %}Saans | Methodology & About{% endblock %}
+
+{% block content %}
+<div class="max-w-[1120px] mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-16 space-y-16">
+  <!-- Page Header -->
+  <header class="border-b border-border pb-8 max-w-[65ch]">
+    <h1 class="text-4xl sm:text-5xl font-serif font-bold text-ink mb-4">
+      About Saans & Methodology
+    </h1>
+    <p class="text-lg text-muted leading-relaxed">
+      How Saans calculates safe daylight hours, indoor purifier sizing, and cleaner commute swaps for families living through winter smog.
+    </p>
+  </header>
+
+  <!-- SECTION 1: WHAT SAANS IS -->
+  <section class="space-y-4">
+    <h2 class="text-2xl font-serif font-bold text-ink">1. What Saans is</h2>
+    <div class="saans-card p-6 bg-surface text-ink text-base space-y-3">
+      <p>
+        <strong>Saans</strong> (the Hindi word for <em>breath</em>) is an urban air quality assistant designed to help families navigate severe seasonal smog. Instead of stopping at a single color-coded air quality index number, Saans translates ambient PM2.5 forecasts into hour-by-hour schedules, room-specific purifier guidelines, and low-emission commute alternatives tailored to who lives in your home.
+      </p>
+    </div>
+  </section>
+
+  <!-- SECTION 2: THE PROBLEM -->
+  <section class="space-y-4">
+    <h2 class="text-2xl font-serif font-bold text-ink">2. The winter smog problem</h2>
+    <div class="saans-card p-6 text-ink text-base space-y-3 border border-border">
+      <p>
+        During winter months across northern India and similar continental basins, thermal inversions trap cold air near the ground. Industrial emissions, vehicular exhaust, and biomass burning accumulate beneath this stagnant layer, creating prolonged spikes in fine particulate matter (PM2.5).
+      </p>
+      <p>
+        Particles smaller than 2.5 micrometers penetrate deep into the lungs and enter the bloodstream. Because atmospheric conditions change dramatically between nighttime inversion peaks and afternoon solar heating, timing daily activities can reduce exposure.
+      </p>
+    </div>
+  </section>
+
+  <!-- SECTION 3: HOW YOUR PLAN IS BUILT -->
+  <section class="space-y-4">
+    <h2 class="text-2xl font-serif font-bold text-ink">3. How your plan is built</h2>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div class="saans-card p-5 bg-surface border border-border space-y-2">
+        <span class="text-xs font-bold uppercase tracking-wider text-primary">Stage 1: Input</span>
+        <h3 class="font-bold text-ink text-base">Household Profile</h3>
+        <p class="text-sm text-muted">You share vulnerable age groups, chronic health risks, home heating, and daily commute distance.</p>
+      </div>
+
+      <div class="saans-card p-5 bg-surface border border-border space-y-2">
+        <span class="text-xs font-bold uppercase tracking-wider text-primary">Stage 2: Data</span>
+        <h3 class="font-bold text-ink text-base">Atmospheric Feed</h3>
+        <p class="text-sm text-muted">Open-Meteo provides current surface PM2.5 and hourly forecast curves, or you provide a manual reading.</p>
+      </div>
+
+      <div class="saans-card p-5 bg-surface border border-border space-y-2">
+        <span class="text-xs font-bold uppercase tracking-wider text-primary">Stage 3: Logic</span>
+        <h3 class="font-bold text-ink text-base">Deterministic Rules</h3>
+        <p class="text-sm text-muted">Stateless algorithms evaluate health bands, daylight dispersion hours, purifier CADR, and commute CO₂.</p>
+      </div>
+
+      <div class="saans-card p-5 bg-surface border border-border space-y-2">
+        <span class="text-xs font-bold uppercase tracking-wider text-primary">Stage 4: Synthesis</span>
+        <h3 class="font-bold text-ink text-base">Plain Explanations</h3>
+        <p class="text-sm text-muted">Google Gemini turns technical calculations into clear advice. Grounding checks verify that numbers match computed rules.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 4: WHERE AIR DATA COMES FROM -->
+  <section class="space-y-4">
+    <h2 class="text-2xl font-serif font-bold text-ink">4. Where air data comes from</h2>
+    <div class="saans-card p-6 border border-border space-y-3 text-sm text-muted">
+      <p>
+        Saans queries the <strong>Open-Meteo Air Quality API</strong>, which assimilates global and regional chemical transport models, including ECMWF Copernicus Atmosphere Monitoring Service (CAMS) and Finnish Meteorological Institute (SILAM).
+      </p>
+      <p>
+        These values represent continuous atmospheric model estimates averaged over grid cells. They do not rely on a single physical roadside monitor that might suffer downtime or local bias. However, because regional models can differ from localized hyper-local sensors, users can provide their own manual PM2.5 readings at any time.
+      </p>
+    </div>
+  </section>
+
+  <!-- SECTION 5: HOW WE GROUP READINGS -->
+  <section class="space-y-4">
+    <h2 class="text-2xl font-serif font-bold text-ink">5. How we group readings (PM2.5 bands)</h2>
+    <p class="text-sm text-muted">
+      Bands use PM2.5 breakpoints based on the Central Pollution Control Board (CPCB) standards and an hourly reading, not the 24-hour average used for official AQI.
+    </p>
+    <div class="table-container saans-card border border-border">
+      <table class="w-full text-left text-sm border-collapse">
+        <thead class="bg-surface border-b border-border">
+          <tr>
+            <th scope="col" class="py-3 px-4 font-semibold text-ink">Band Label</th>
+            <th scope="col" class="py-3 px-4 font-semibold text-ink">Concentration Range (µg/m³)</th>
+            <th scope="col" class="py-3 px-4 font-semibold text-ink">General Advisory Tier</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-border">
+          {% for b in bands %}
+          <tr>
+            <td class="py-3 px-4 font-medium text-ink">
+              <span class="band-chip band-{{ b.key }}">{{ b.label }}</span>
+            </td>
+            <td class="py-3 px-4 text-muted">
+              {% if b.max is not none %}
+                {{ b.min }} - {{ b.max }}
+              {% else %}
+                &gt; {{ b.min }}
+              {% endif %}
+            </td>
+            <td class="py-3 px-4 text-muted capitalize">
+              {{ b.key|replace('_', ' ') }}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- SECTION 6: ASSUMPTIONS BEHIND NUMBERS -->
+  <section class="space-y-6">
+    <h2 class="text-2xl font-serif font-bold text-ink">6. Assumptions behind the numbers</h2>
+
+    <!-- Commute factors -->
+    <div class="space-y-3">
+      <h3 class="text-lg font-bold text-ink">Commuter carbon emissions</h3>
+      <p class="text-sm text-muted">
+        Emission factors reflect average per-passenger-kilometer values derived from transport energy benchmarks.
+      </p>
+      <div class="table-container saans-card border border-border">
+        <table class="w-full text-left text-sm border-collapse">
+          <thead class="bg-surface border-b border-border">
+            <tr>
+              <th scope="col" class="py-3 px-4 font-semibold text-ink">Transport Mode</th>
+              <th scope="col" class="py-3 px-4 font-semibold text-ink">Emission Factor (kg CO₂/km)</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-border">
+            {% for mode, factor in emission_factors.items() %}
+            <tr>
+              <td class="py-2.5 px-4 font-medium text-ink">{{ mode|pretty_mode }}</td>
+              <td class="py-2.5 px-4 text-muted">{{ factor }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Purifier Sizing -->
+    <div class="space-y-3">
+      <h3 class="text-lg font-bold text-ink">Air purifier CADR calculation</h3>
+      <div class="saans-card p-5 bg-surface border border-border text-sm space-y-2 text-muted">
+        <p>
+          We estimate room volume assuming a standard ceiling height of <strong>{{ ceiling_m }} meters</strong>:
+        </p>
+        <p class="font-mono text-xs bg-white p-2 rounded border border-border text-ink">
+          Volume (m³) = Room Area (m²) × {{ ceiling_m }} m
+        </p>
+        <p>
+          To maintain effective indoor cleaning during smog spikes, we recommend an air exchange rate of <strong>{{ target_ach }} air changes per hour (ACH)</strong>:
+        </p>
+        <p class="font-mono text-xs bg-white p-2 rounded border border-border text-ink">
+          Minimum CADR (m³/h) = Volume (m³) × {{ target_ach }} ACH
+        </p>
+        <p class="text-xs">
+          (Note: 1 m³/h ≈ 0.588 CFM, Clean Air Delivery Rate).
+        </p>
+      </div>
+    </div>
+
+    <!-- Permitted Activity Hours -->
+    <div class="space-y-3">
+      <h3 class="text-lg font-bold text-ink">Candidate daylight hours</h3>
+      <div class="saans-card p-5 border border-border text-sm text-muted">
+        <p class="mb-3">
+          Window searches are restricted to hours when daylight thermal mixing occurs and activities are practical:
+        </p>
+        <ul class="list-disc pl-5 space-y-1 text-ink">
+          {% for act, hrs in activity_hours.items() %}
+          <li><strong>{{ act|replace('_', ' ')|title }}:</strong> {{ hrs[0] }}:00 to {{ hrs[1] }}:00</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 7: WHAT AI DOES AND DOES NOT DO -->
+  <section class="space-y-4">
+    <h2 class="text-2xl font-serif font-bold text-ink">7. What the AI does and does not do</h2>
+    <div class="saans-card p-6 border border-border space-y-3 text-sm leading-relaxed text-ink">
+      <p>
+        Our AI integration uses Google Gemini to write conversational explanations of your plan. To prevent hallucinations and misleading figures, every response is passed through a <strong>numeric grounding filter</strong>.
+      </p>
+      <p>
+        If the AI generates a number with a unit (such as PM2.5 concentrations, percentages, or distances) that was not part of the deterministic rule output, that statement is automatically removed before you see it. The AI cannot modify your calculated recommendations.
+      </p>
+    </div>
+  </section>
+
+  <!-- SECTION 8: PRIVACY -->
+  <section class="space-y-4">
+    <h2 class="text-2xl font-serif font-bold text-ink">8. Privacy & session storage</h2>
+    <div class="saans-card p-6 bg-surface border border-border space-y-3 text-sm text-muted">
+      <p>
+        Saans requires <strong>no user accounts, passwords, or logins</strong>.
+      </p>
+      <p>
+        Your household inputs are held temporarily in your browser's <code class="bg-white px-1 py-0.5 rounded border border-border text-ink">sessionStorage</code>. Nothing is stored in a database or tracked across web sessions. Closing your browser tab clears your inputs.
+      </p>
+    </div>
+  </section>
+
+  <!-- SECTION 9: LIMITATIONS -->
+  <section class="space-y-4">
+    <h2 class="text-2xl font-serif font-bold text-ink">9. Limitations & health precautions</h2>
+    <div class="saans-card p-6 border border-amber-300 bg-amber-50 text-amber-950 space-y-3 text-sm">
+      <p class="font-bold">Not medical advice</p>
+      <p>
+        Saans provides general precautions based on environmental air quality estimates. It cannot diagnose or treat medical conditions. Individuals with asthma, COPD, cardiovascular illness, or pregnancy should follow guidance from their physician.
+      </p>
+      <p>
+        Model estimates may differ from hyper-local sensor readings due to micro-climates, wind shifts, or local fires.
+      </p>
+    </div>
+  </section>
+
+  <!-- SECTION 10: BUILT WITH STACK CREDITS -->
+  <section class="space-y-4">
+    <h2 class="text-2xl font-serif font-bold text-ink">10. Architecture & stack credits</h2>
+    <div class="saans-card p-6 border border-border space-y-3 text-sm text-muted">
+      <p>Saans is built with:</p>
+      <ul class="list-disc pl-5 space-y-1 text-ink">
+        <li><strong>Python & Flask</strong> for backend routing, validation, and deterministic rules.</li>
+        <li><strong>Open-Meteo</strong> for global geocoding and atmospheric PM2.5 forecasts without tracking.</li>
+        <li><strong>Google Gemini</strong> for grounded, plain-language summaries and context Q&amp;A.</li>
+        <li><strong>Tailwind CSS</strong> for accessible, responsive layout and high-contrast typography.</li>
+      </ul>
+    </div>
+  </section>
+</div>
+{% endblock %}
