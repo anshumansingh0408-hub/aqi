@@ -1,0 +1,455 @@
+{% extends "base.html" %}
+
+{% block title %}Saans | Air Quality Plan{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/plan.js') }}?v={{ app_version }}" defer></script>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-[1120px] mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 animate-fade-in">
+  <!-- Loading state -->
+  <div id="plan-loading" class="text-center py-20">
+    <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent mb-4 shadow-xs" aria-hidden="true"></div>
+    <h1 class="text-2xl font-serif font-bold text-ink mb-2">Building your air quality plan...</h1>
+    <p class="text-muted">Fetching air quality data and synthesizing recommendations.</p>
+  </div>
+
+  <!-- Global error alert -->
+  <div id="plan-error" role="alert" class="hidden saans-card p-6 bg-red-50 border-red-200 text-red-900 mb-8">
+    <h2 class="text-lg font-bold text-red-900 mb-2">Unable to load air plan</h2>
+    <p id="plan-error-message" class="text-red-800 mb-4"></p>
+    <div class="flex flex-wrap gap-4">
+      <button type="button" id="btn-plan-retry" class="hidden bg-primary text-white font-medium px-5 py-2.5 rounded-xl hover:bg-primary-dark transition-colors">
+        Try again
+      </button>
+      <a href="/create" class="inline-flex items-center text-primary font-medium hover:underline">
+        Back to setup
+      </a>
+    </div>
+  </div>
+
+  <!-- Main plan presentation container -->
+  <div id="plan-content" class="hidden space-y-8">
+    <!-- Header with place, actions, and timestamps -->
+    <header class="border-b border-border pb-6">
+      <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+        <div>
+          <h1 id="plan-heading" class="text-3xl sm:text-4xl font-serif font-bold text-ink">
+            Air plan for <span id="plan-city-display"></span>
+          </h1>
+          <p id="plan-location-meta" class="text-muted text-sm mt-1"></p>
+        </div>
+        <div class="flex flex-wrap items-center gap-3 no-print">
+          <a href="/create" id="btn-edit-details" class="border border-border bg-white hover:bg-surface text-ink px-4 py-2 rounded-xl text-sm font-medium transition-colors flex items-center min-h-[44px]">
+            Edit details
+          </a>
+          <button type="button" id="btn-refresh-reading" class="border border-border bg-white hover:bg-surface text-ink px-4 py-2 rounded-xl text-sm font-medium transition-colors flex items-center min-h-[44px]">
+            Refresh reading
+          </button>
+          <button type="button" id="btn-print-plan" class="bg-primary hover:bg-primary-dark text-white px-5 py-2 rounded-xl text-sm font-medium transition-colors flex items-center min-h-[44px] shadow-xs">
+            Print or save as PDF
+          </button>
+        </div>
+      </div>
+
+      <!-- Source notification box -->
+      <div id="plan-source-box" class="mt-4 p-4 bg-surface rounded-xl border border-border text-sm text-muted flex items-center gap-3">
+        <span class="live-pulse flex-shrink-0" aria-hidden="true"></span>
+        <p id="plan-source-text" class="flex-grow"></p>
+      </div>
+
+      <!-- Medical disclaimer box -->
+      <div class="mt-4 p-4 rounded-xl border border-amber-300 bg-amber-50/70 text-amber-950 text-sm">
+        <p class="font-semibold text-amber-950 mb-1">Important medical disclaimer</p>
+        <p id="plan-medical-note"></p>
+      </div>
+    </header>
+
+    <!-- Tab navigation -->
+    <div role="tablist" aria-label="Air quality plan sections" class="border-b border-border flex flex-wrap gap-2">
+      <button role="tab" id="tab-today" aria-controls="tabpanel-today" aria-selected="true" tabindex="0" class="tab-button py-3 px-5 text-base font-semibold border-b-2 border-primary text-primary hover:text-primary-dark">
+        Today
+      </button>
+      <button role="tab" id="tab-indoors" aria-controls="tabpanel-indoors" aria-selected="false" tabindex="-1" class="tab-button py-3 px-5 text-base font-semibold border-b-2 border-transparent text-muted hover:text-ink hover:border-border">
+        Indoors
+      </button>
+      <button role="tab" id="tab-commute" aria-controls="tabpanel-commute" aria-selected="false" tabindex="-1" class="tab-button py-3 px-5 text-base font-semibold border-b-2 border-transparent text-muted hover:text-ink hover:border-border">
+        Commute
+      </button>
+      <button role="tab" id="tab-explain" aria-controls="tabpanel-explain" aria-selected="false" tabindex="-1" class="tab-button py-3 px-5 text-base font-semibold border-b-2 border-transparent text-muted hover:text-ink hover:border-border">
+        Explain
+      </button>
+      <button role="tab" id="tab-ask" aria-controls="tabpanel-ask" aria-selected="false" tabindex="-1" class="tab-button py-3 px-5 text-base font-semibold border-b-2 border-transparent text-muted hover:text-ink hover:border-border">
+        Ask
+      </button>
+    </div>
+
+    <!-- TAB 1: TODAY -->
+    <div role="tabpanel" id="tabpanel-today" aria-labelledby="tab-today" tabindex="0" class="space-y-8 focus:outline-none">
+      <!-- Visual Air Quality Gauge Card (IQAir / BreezoMeter inspired) -->
+      <div id="plan-gauge-card" class="saans-card p-6 border border-border space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <div>
+              <span class="text-xs uppercase tracking-wider font-semibold text-muted block">Live PM2.5 Spectrum</span>
+              <div class="flex items-baseline gap-2 mt-0.5">
+                <span id="plan-gauge-val" class="text-3xl sm:text-4xl font-serif font-bold text-ink">--</span>
+                <span class="text-sm font-medium text-muted">µg/m³</span>
+              </div>
+            </div>
+          </div>
+          <div>
+            <span id="plan-gauge-chip" class="band-chip">--</span>
+          </div>
+        </div>
+
+        <!-- Animated spectrum bar -->
+        <div class="pt-2">
+          <div class="spectrum-track" role="meter" aria-label="Current Air Quality Level">
+            <div class="spectrum-pointer" id="plan-spectrum-pointer" style="left: 10%;"></div>
+          </div>
+          <div class="grid grid-cols-6 text-[11px] text-muted font-medium mt-2 text-center">
+            <span class="text-left">0 Good</span>
+            <span>31 Sat</span>
+            <span>61 Mod</span>
+            <span>91 Poor</span>
+            <span>121 V.Poor</span>
+            <span class="text-right">250+ Sev</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dual-Anchor Module: Outdoor vs Indoor (IQAir pattern) -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Outdoor Anchor -->
+        <div class="saans-card p-5 border border-border bg-white space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs uppercase tracking-wider font-semibold text-muted flex items-center gap-1.5">
+              <svg class="w-4 h-4 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 00-9.78 2.096A4.001 4.001 0 003 15z"/>
+              </svg>
+              <span>Outdoor Environment</span>
+            </span>
+            <span class="text-xs text-muted" id="dual-outdoor-source">Model estimate</span>
+          </div>
+          <div class="flex items-baseline justify-between pt-1">
+            <div>
+              <span class="text-2xl font-bold font-serif text-ink" id="dual-outdoor-val">--</span>
+              <span class="text-xs font-medium text-muted ml-0.5">µg/m³ PM2.5</span>
+            </div>
+            <span id="dual-outdoor-chip" class="band-chip text-xs">--</span>
+          </div>
+          <p id="dual-outdoor-desc" class="text-xs text-muted pt-1 border-t border-border">
+            Ambient air concentration
+          </p>
+        </div>
+
+        <!-- Indoor Haven Anchor -->
+        <div class="saans-card p-5 border border-border bg-white space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs uppercase tracking-wider font-semibold text-muted flex items-center gap-1.5">
+              <svg class="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+              </svg>
+              <span>Indoor Protection Target</span>
+            </span>
+            <span class="text-xs font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-full">4 ACH Target</span>
+          </div>
+          <div class="flex items-baseline justify-between pt-1">
+            <div>
+              <span class="text-2xl font-bold font-serif text-ink" id="dual-indoor-cadr">--</span>
+              <span class="text-xs font-medium text-muted ml-0.5">m³/h min CADR</span>
+            </div>
+            <span id="dual-indoor-window" class="text-xs font-semibold text-ink px-2.5 py-1 rounded-full bg-surface">--</span>
+          </div>
+          <p id="dual-indoor-desc" class="text-xs text-muted pt-1 border-t border-border">
+            Sized for your room volume
+          </p>
+        </div>
+      </div>
+
+      <!-- 4 summary tiles -->
+      <section aria-labelledby="tiles-heading">
+        <h2 id="tiles-heading" class="sr-only">Air Quality Summary</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <!-- Tile 1: PM2.5 -->
+          <div class="saans-card saans-card-interactive p-5 flex flex-col justify-between">
+            <span class="text-xs uppercase tracking-wider font-semibold text-muted">Current PM2.5</span>
+            <div class="my-2">
+              <span id="tile-pm25-val" class="text-3xl font-bold font-serif text-ink">--</span>
+              <span class="text-sm font-medium text-muted ml-1">µg/m³</span>
+            </div>
+            <div>
+              <span id="tile-pm25-chip" class="band-chip">--</span>
+            </div>
+          </div>
+
+          <!-- Tile 2: Advice level -->
+          <div class="saans-card saans-card-interactive p-5 flex flex-col justify-between">
+            <span class="text-xs uppercase tracking-wider font-semibold text-muted">Guidance Level</span>
+            <div class="my-2">
+              <span id="tile-guidance-title" class="text-xl font-bold text-ink">--</span>
+            </div>
+            <p id="tile-guidance-sub" class="text-xs text-muted">Based on household health profile</p>
+          </div>
+
+          <!-- Tile 3: Best outdoor window -->
+          <div class="saans-card saans-card-interactive p-5 flex flex-col justify-between">
+            <span class="text-xs uppercase tracking-wider font-semibold text-muted">Best Exercise Time</span>
+            <div class="my-2">
+              <span id="tile-best-window" class="text-xl font-bold text-ink">--</span>
+            </div>
+            <p id="tile-best-window-sub" class="text-xs text-muted">Lowest predicted PM2.5 window</p>
+          </div>
+
+          <!-- Tile 4: Sensitive groups -->
+          <div class="saans-card saans-card-interactive p-5 flex flex-col justify-between">
+            <span class="text-xs uppercase tracking-wider font-semibold text-muted">Sensitive Groups</span>
+            <div class="my-2">
+              <span id="tile-sensitive-groups" class="text-lg font-semibold text-ink">--</span>
+            </div>
+            <p class="text-xs text-muted">Reported in household profile</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Activity guidance cards -->
+      <section aria-labelledby="activity-guidance-heading" class="saans-card p-6">
+        <h2 id="activity-guidance-heading" class="text-xl font-serif font-bold text-ink mb-1">
+          What this means for your day
+        </h2>
+        <p class="text-sm text-muted mb-5">
+          Actionable precautions tailored to your household sensitivity and today's air quality.
+        </p>
+        <div id="activity-guidance-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Injected via DOM -->
+        </div>
+      </section>
+
+      <!-- Best times today table & hourly timeline -->
+      <section aria-labelledby="best-times-heading" class="saans-card p-6">
+        <h2 id="best-times-heading" class="text-xl font-serif font-bold text-ink mb-2">
+          Best times today
+        </h2>
+        <p class="text-sm text-muted mb-4">
+          Atmospheric forecast windows showing estimated cleaner hours for outdoor tasks.
+        </p>
+        <div id="best-times-container">
+          <!-- Injected via DOM (table or unavailable notice) -->
+        </div>
+      </section>
+
+      <!-- Usual vs best outdoor hour with Visual Bars -->
+      <section aria-labelledby="usual-vs-best-heading" class="saans-card p-6">
+        <h2 id="usual-vs-best-heading" class="text-xl font-serif font-bold text-ink mb-2">
+          Your schedule comparison
+        </h2>
+        <div id="usual-vs-best-container">
+          <!-- Injected via DOM -->
+        </div>
+      </section>
+    </div>
+
+    <!-- TAB 2: INDOORS -->
+    <div role="tabpanel" id="tabpanel-indoors" aria-labelledby="tab-indoors" tabindex="0" class="space-y-8 focus:outline-none" hidden>
+      <!-- Indoor checklist -->
+      <section aria-labelledby="indoor-checklist-heading" class="saans-card p-6">
+        <h2 id="indoor-checklist-heading" class="text-xl font-serif font-bold text-ink mb-2">
+          Indoor air quality checklist
+        </h2>
+        <p class="text-sm text-muted mb-6">
+          Prioritized precautions to reduce indoor particle buildup.
+        </p>
+        <div id="indoor-checklist-items" class="space-y-4">
+          <!-- Injected via DOM -->
+        </div>
+      </section>
+
+      <!-- Purifier Sizing -->
+      <section aria-labelledby="purifier-sizing-heading" class="saans-card p-6">
+        <h2 id="purifier-sizing-heading" class="text-xl font-serif font-bold text-ink mb-2">
+          Air purifier sizing guide
+        </h2>
+        <p class="text-sm text-muted mb-4">
+          Targeting 4 air changes per hour (ACH) for your primary living area.
+        </p>
+        <div id="purifier-details-container">
+          <!-- Injected via DOM -->
+        </div>
+      </section>
+    </div>
+
+    <!-- TAB 3: COMMUTE -->
+    <div role="tabpanel" id="tabpanel-commute" aria-labelledby="tab-commute" tabindex="0" class="space-y-8 focus:outline-none" hidden>
+      <!-- Current emissions and alternatives -->
+      <section aria-labelledby="commute-overview-heading" class="saans-card p-6">
+        <h2 id="commute-overview-heading" class="text-xl font-serif font-bold text-ink mb-2">
+          Commute impact & cleaner alternatives
+        </h2>
+        <div class="mb-6 p-5 bg-gradient-to-r from-surface to-white rounded-xl border border-border">
+          <span class="text-xs uppercase tracking-wider font-semibold text-muted">Estimated Current Monthly Footprint</span>
+          <p class="text-3xl font-bold font-serif text-ink mt-1">
+            <span id="commute-current-kg">--</span> kg CO₂ <span class="text-base font-normal text-muted">per month</span>
+          </p>
+        </div>
+
+        <h3 class="text-lg font-semibold text-ink mb-3">Cleaner travel options</h3>
+        <div class="table-container">
+          <table class="w-full text-left text-sm border-collapse" id="commute-alternatives-table">
+            <thead>
+              <tr class="border-b border-border text-muted">
+                <th scope="col" class="py-2.5 px-3 font-semibold">Mode</th>
+                <th scope="col" class="py-2.5 px-3 font-semibold">Monthly CO₂</th>
+                <th scope="col" class="py-2.5 px-3 font-semibold">Potential Savings</th>
+                <th scope="col" class="py-2.5 px-3 font-semibold">Footprint Comparison</th>
+                <th scope="col" class="py-2.5 px-3 font-semibold">Notes</th>
+              </tr>
+            </thead>
+            <tbody id="commute-alternatives-body" class="divide-y divide-border">
+              <!-- Injected via DOM -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Climate Note -->
+      <div class="saans-card p-6 bg-surface border border-border">
+        <h3 class="text-base font-semibold text-ink mb-1">Community climate connection</h3>
+        <p id="commute-climate-note" class="text-sm text-muted"></p>
+      </div>
+    </div>
+
+    <!-- TAB 4: EXPLAIN -->
+    <div role="tabpanel" id="tabpanel-explain" aria-labelledby="tab-explain" tabindex="0" class="space-y-6 focus:outline-none" hidden>
+      <section class="saans-card p-6">
+        <h2 class="text-xl font-serif font-bold text-ink mb-2">
+          Plain-language explanation
+        </h2>
+        <p class="text-sm text-muted mb-6">
+          Gemini synthesizes the computed rules and your household profile into a conversational guide. Numbers are strictly grounded in your plan.
+        </p>
+        <button type="button" id="btn-explain" class="bg-primary hover:bg-primary-dark text-white font-medium px-6 py-2.5 rounded-xl transition-colors flex items-center min-h-[44px] shadow-xs">
+          Explain my plan in plain words
+        </button>
+
+        <!-- Loading spinner for explanation -->
+        <div id="explain-loading" class="hidden mt-6 text-center py-8">
+          <div class="inline-block animate-spin rounded-full h-8 w-8 border-3 border-primary border-t-transparent mb-2" aria-hidden="true"></div>
+          <p class="text-sm text-muted">Generating grounded plain-language explanation...</p>
+        </div>
+
+        <!-- Explain output container -->
+        <div id="explain-output" class="hidden mt-6 space-y-6">
+          <!-- Fallback or grounding notices -->
+          <div id="explain-fallback-alert" class="hidden p-4 rounded-xl bg-surface border border-border text-sm text-muted">
+            <p><strong>Note:</strong> Gemini was temporarily unavailable. This explanation was compiled directly from the rule engine output.</p>
+          </div>
+          <div id="explain-grounding-alert" class="hidden p-4 rounded-xl bg-surface border border-border text-sm text-muted">
+            <p id="explain-grounding-text"></p>
+          </div>
+
+          <!-- Structured sections -->
+          <div class="p-5 bg-surface rounded-xl border border-border">
+            <h3 class="text-base font-bold text-ink mb-2">Summary</h3>
+            <p id="explain-summary" class="text-ink leading-relaxed"></p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="p-5 bg-white rounded-xl border border-border">
+              <h3 class="text-base font-bold text-ink mb-3">Daily Routine Recommendations</h3>
+              <ul id="explain-daily-routine" class="list-disc pl-5 space-y-2 text-sm text-ink"></ul>
+            </div>
+            <div class="p-5 bg-white rounded-xl border border-border">
+              <h3 class="text-base font-bold text-ink mb-3">Indoor Environment Tips</h3>
+              <ul id="explain-indoor-tips" class="list-disc pl-5 space-y-2 text-sm text-ink"></ul>
+            </div>
+          </div>
+
+          <div id="explain-commute-box" class="p-5 bg-surface rounded-xl border border-border">
+            <h3 class="text-base font-bold text-ink mb-1" id="explain-commute-headline">Commute Swap</h3>
+            <p id="explain-commute-text" class="text-sm text-ink"></p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="p-5 bg-white rounded-xl border border-border">
+              <h3 class="text-base font-bold text-ink mb-3">Household Impact</h3>
+              <ul id="explain-impacts" class="list-disc pl-5 space-y-2 text-sm text-ink"></ul>
+            </div>
+            <div class="p-5 bg-white rounded-xl border border-border">
+              <h3 class="text-base font-bold text-ink mb-3">Community Actions</h3>
+              <ul id="explain-community" class="list-disc pl-5 space-y-2 text-sm text-ink"></ul>
+            </div>
+            <div class="p-5 bg-white rounded-xl border border-border">
+              <h3 class="text-base font-bold text-ink mb-3">Watch-Outs</h3>
+              <ul id="explain-watchouts" class="list-disc pl-5 space-y-2 text-sm text-ink"></ul>
+            </div>
+          </div>
+
+          <div class="p-4 rounded-xl border border-amber-200 bg-amber-50 text-amber-950 text-xs">
+            <p id="explain-disclaimer"></p>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- TAB 5: ASK -->
+    <div role="tabpanel" id="tabpanel-ask" aria-labelledby="tab-ask" tabindex="0" class="space-y-6 focus:outline-none" hidden>
+      <section class="saans-card p-6">
+        <h2 class="text-xl font-serif font-bold text-ink mb-2">
+          Ask a question about your plan
+        </h2>
+        <p class="text-sm text-muted mb-4">
+          Ask anything about your schedule, home, or commute. Answers are strictly grounded in your computed plan.
+        </p>
+
+        <!-- Example question pills -->
+        <div class="mb-4">
+          <span class="text-xs font-semibold text-muted block mb-2">Example questions:</span>
+          <div class="flex flex-wrap gap-2">
+            <button type="button" class="btn-sample-q text-xs bg-surface hover:bg-border text-ink px-3.5 py-1.5 rounded-full border border-border transition-all duration-150 hover:-translate-y-0.5 min-h-[36px]">
+              Can children play outside today?
+            </button>
+            <button type="button" class="btn-sample-q text-xs bg-surface hover:bg-border text-ink px-3.5 py-1.5 rounded-full border border-border transition-all duration-150 hover:-translate-y-0.5 min-h-[36px]">
+              When is the best time to ventilate the house?
+            </button>
+            <button type="button" class="btn-sample-q text-xs bg-surface hover:bg-border text-ink px-3.5 py-1.5 rounded-full border border-border transition-all duration-150 hover:-translate-y-0.5 min-h-[36px]">
+              Should I wear a mask for outdoor errands?
+            </button>
+          </div>
+        </div>
+
+        <!-- Question Form -->
+        <form id="ask-form" class="space-y-4">
+          <div>
+            <label for="ask-input" class="sr-only">Your question</label>
+            <textarea id="ask-input" rows="3" maxlength="300" placeholder="Type your question here (max 300 characters)..." class="w-full px-4 py-3 rounded-xl border border-border focus:ring-1 focus:ring-primary focus:border-primary text-sm"></textarea>
+            <div class="flex justify-between items-center text-xs text-muted mt-1">
+              <span>Grounding check applies to all answers</span>
+              <span id="ask-char-count">0/300</span>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-4">
+            <button type="submit" id="btn-ask" class="bg-primary hover:bg-primary-dark text-white font-medium px-6 py-2.5 rounded-xl transition-colors flex items-center min-h-[44px] shadow-xs">
+              Ask question
+            </button>
+            <span id="ask-spinner" class="hidden text-sm text-muted flex items-center gap-2">
+              <span class="inline-block animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent" aria-hidden="true"></span>
+              Checking plan...
+            </span>
+          </div>
+        </form>
+
+        <!-- Q&A stream (aria-live) -->
+        <div class="mt-8 pt-6 border-t border-border">
+          <h3 class="text-lg font-serif font-bold text-ink mb-4">Answers</h3>
+          <div id="ask-answers-stream" aria-live="polite" class="space-y-4">
+            <p id="ask-empty-notice" class="text-sm text-muted italic">No questions asked yet. Ask a question above.</p>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+{% endblock %}
