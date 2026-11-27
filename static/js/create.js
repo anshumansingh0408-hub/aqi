@@ -9,6 +9,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initNoticeAndDetails();
   initNotesCounter();
   initExampleButton();
+  initQuickCityButtons();
   initFormPrefill();
   initFormSubmit();
 });
@@ -85,6 +86,22 @@ function initExampleButton() {
   if (btn) {
     btn.addEventListener("click", fillExampleData);
   }
+}
+
+/**
+ * Wire quick city buttons to auto-populate the city input.
+ */
+function initQuickCityButtons() {
+  const chips = document.querySelectorAll(".btn-quick-city");
+  chips.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const cityInput = document.getElementById("city");
+      if (cityInput) {
+        cityInput.value = btn.getAttribute("data-city") || "";
+        cityInput.focus();
+      }
+    });
+  });
 }
 
 /**
