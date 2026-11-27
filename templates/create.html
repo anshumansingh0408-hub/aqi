@@ -39,6 +39,29 @@
       <ul id="error-list" class="list-disc list-inside space-y-1 text-sm text-red-800"></ul>
     </div>
 
+    <!-- Visual Step Tracker -->
+    <div class="mb-8 hidden sm:flex items-center justify-between text-xs font-semibold text-muted bg-white p-3.5 rounded-2xl border border-border shadow-2xs">
+      <div class="flex items-center gap-2 text-primary font-bold">
+        <span class="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center text-xs">1</span>
+        <span>Location & Timing</span>
+      </div>
+      <div class="h-px w-8 bg-border"></div>
+      <div class="flex items-center gap-2">
+        <span class="w-6 h-6 rounded-full bg-surface border border-border flex items-center justify-center text-xs">2</span>
+        <span>Household Health</span>
+      </div>
+      <div class="h-px w-8 bg-border"></div>
+      <div class="flex items-center gap-2">
+        <span class="w-6 h-6 rounded-full bg-surface border border-border flex items-center justify-center text-xs">3</span>
+        <span>Home & Clean Air</span>
+      </div>
+      <div class="h-px w-8 bg-border"></div>
+      <div class="flex items-center gap-2">
+        <span class="w-6 h-6 rounded-full bg-surface border border-border flex items-center justify-center text-xs">4</span>
+        <span>Commute Footprint</span>
+      </div>
+    </div>
+
     <form id="plan-form" novalidate class="max-w-[760px] space-y-8">
       <!-- 1. Where are you? -->
       <fieldset class="saans-card p-6 sm:p-7 space-y-4">
@@ -55,15 +78,19 @@
             class="w-full px-4 py-2.5 rounded-xl border border-border focus:border-primary focus:ring-1 focus:ring-primary text-ink min-h-[46px] shadow-2xs"
             aria-describedby="city-helper">
           
-          <!-- Quick City Chips for Indian Metros -->
+          <!-- Quick City Chips for Indian Metros & NCR -->
           <div class="mt-2.5 flex flex-wrap items-center gap-1.5">
             <span class="text-xs text-muted font-medium mr-1">Quick pick:</span>
             <button type="button" class="btn-quick-city px-2.5 py-1 rounded-full text-xs font-medium bg-surface hover:bg-border text-ink transition-colors min-h-[28px]" data-city="Delhi">Delhi</button>
-            <button type="button" class="btn-quick-city px-2.5 py-1 rounded-full text-xs font-medium bg-surface hover:bg-border text-ink transition-colors min-h-[28px]" data-city="Lucknow">Lucknow</button>
-            <button type="button" class="btn-quick-city px-2.5 py-1 rounded-full text-xs font-medium bg-surface hover:bg-border text-ink transition-colors min-h-[28px]" data-city="Patna">Patna</button>
             <button type="button" class="btn-quick-city px-2.5 py-1 rounded-full text-xs font-medium bg-surface hover:bg-border text-ink transition-colors min-h-[28px]" data-city="Noida">Noida</button>
             <button type="button" class="btn-quick-city px-2.5 py-1 rounded-full text-xs font-medium bg-surface hover:bg-border text-ink transition-colors min-h-[28px]" data-city="Gurugram">Gurugram</button>
+            <button type="button" class="btn-quick-city px-2.5 py-1 rounded-full text-xs font-medium bg-surface hover:bg-border text-ink transition-colors min-h-[28px]" data-city="Ghaziabad">Ghaziabad</button>
+            <button type="button" class="btn-quick-city px-2.5 py-1 rounded-full text-xs font-medium bg-surface hover:bg-border text-ink transition-colors min-h-[28px]" data-city="Faridabad">Faridabad</button>
+            <button type="button" class="btn-quick-city px-2.5 py-1 rounded-full text-xs font-medium bg-surface hover:bg-border text-ink transition-colors min-h-[28px]" data-city="Lucknow">Lucknow</button>
+            <button type="button" class="btn-quick-city px-2.5 py-1 rounded-full text-xs font-medium bg-surface hover:bg-border text-ink transition-colors min-h-[28px]" data-city="Patna">Patna</button>
             <button type="button" class="btn-quick-city px-2.5 py-1 rounded-full text-xs font-medium bg-surface hover:bg-border text-ink transition-colors min-h-[28px]" data-city="Mumbai">Mumbai</button>
+            <button type="button" class="btn-quick-city px-2.5 py-1 rounded-full text-xs font-medium bg-surface hover:bg-border text-ink transition-colors min-h-[28px]" data-city="Bengaluru">Bengaluru</button>
+            <button type="button" class="btn-quick-city px-2.5 py-1 rounded-full text-xs font-medium bg-surface hover:bg-border text-ink transition-colors min-h-[28px]" data-city="Kolkata">Kolkata</button>
           </div>
 
           <p id="city-helper" class="text-xs text-muted mt-2">
@@ -82,42 +109,75 @@
         <p class="text-xs text-muted -mt-2">Guidance limits tighten if young children, elderly family, or vulnerable members are present.</p>
         
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div class="p-3.5 rounded-xl border border-border bg-surface/50 space-y-1">
-            <label for="children" class="block font-medium text-ink text-sm">Children under 18</label>
-            <input type="number" id="children" name="children" min="0" max="10" value="0"
-              class="w-full px-3.5 py-2 rounded-lg border border-border focus:border-primary focus:ring-1 focus:ring-primary text-ink min-h-[44px] bg-white">
+          <div class="p-4 rounded-xl border border-border bg-white shadow-2xs space-y-2">
+            <div class="flex items-center justify-between">
+              <div>
+                <label for="children" class="block font-semibold text-ink text-sm">Children</label>
+                <span class="text-xs text-muted block">Under 18 years old</span>
+              </div>
+              <div class="flex items-center gap-1.5 bg-surface rounded-xl p-1 border border-border">
+                <button type="button" class="stepper-btn w-8 h-8 rounded-lg bg-white hover:bg-surface text-ink font-bold border border-border/80 flex items-center justify-center transition-all text-sm" data-target="children" data-delta="-1" aria-label="Decrease children count">-</button>
+                <input type="number" id="children" name="children" min="0" max="10" value="0"
+                  class="w-10 text-center font-bold text-ink bg-transparent border-0 focus:ring-0 p-0 text-base">
+                <button type="button" class="stepper-btn w-8 h-8 rounded-lg bg-white hover:bg-surface text-ink font-bold border border-border/80 flex items-center justify-center transition-all text-sm" data-target="children" data-delta="1" aria-label="Increase children count">+</button>
+              </div>
+            </div>
             <p id="children-error" class="text-xs text-red-700 mt-1 hidden"></p>
           </div>
-          <div class="p-3.5 rounded-xl border border-border bg-surface/50 space-y-1">
-            <label for="elderly" class="block font-medium text-ink text-sm">Adults 60 and over</label>
-            <input type="number" id="elderly" name="elderly" min="0" max="10" value="0"
-              class="w-full px-3.5 py-2 rounded-lg border border-border focus:border-primary focus:ring-1 focus:ring-primary text-ink min-h-[44px] bg-white">
+
+          <div class="p-4 rounded-xl border border-border bg-white shadow-2xs space-y-2">
+            <div class="flex items-center justify-between">
+              <div>
+                <label for="elderly" class="block font-semibold text-ink text-sm">Older adults</label>
+                <span class="text-xs text-muted block">Aged 60 and above</span>
+              </div>
+              <div class="flex items-center gap-1.5 bg-surface rounded-xl p-1 border border-border">
+                <button type="button" class="stepper-btn w-8 h-8 rounded-lg bg-white hover:bg-surface text-ink font-bold border border-border/80 flex items-center justify-center transition-all text-sm" data-target="elderly" data-delta="-1" aria-label="Decrease elderly count">-</button>
+                <input type="number" id="elderly" name="elderly" min="0" max="10" value="0"
+                  class="w-10 text-center font-bold text-ink bg-transparent border-0 focus:ring-0 p-0 text-base">
+                <button type="button" class="stepper-btn w-8 h-8 rounded-lg bg-white hover:bg-surface text-ink font-bold border border-border/80 flex items-center justify-center transition-all text-sm" data-target="elderly" data-delta="1" aria-label="Increase elderly count">+</button>
+              </div>
+            </div>
             <p id="elderly-error" class="text-xs text-red-700 mt-1 hidden"></p>
           </div>
         </div>
 
         <div class="space-y-3 pt-2">
-          <div class="flex items-start gap-3 p-3 rounded-xl border border-border/80 hover:bg-surface/60 transition-colors">
+          <label for="respiratory" class="toggle-card flex items-start gap-3.5 p-3.5 rounded-xl border border-border/80 hover:border-primary/50 bg-white transition-all cursor-pointer">
             <input type="checkbox" id="respiratory" name="respiratory"
-              class="mt-0.5 h-5 w-5 rounded border-border text-primary focus:ring-primary">
-            <label for="respiratory" class="text-sm font-medium text-ink cursor-pointer select-none">
-              Someone has asthma or another lung condition
-            </label>
-          </div>
-          <div class="flex items-start gap-3 p-3 rounded-xl border border-border/80 hover:bg-surface/60 transition-colors">
+              class="mt-1 h-5 w-5 rounded border-border text-primary focus:ring-primary accent-primary cursor-pointer">
+            <div class="space-y-0.5">
+              <span class="text-sm font-semibold text-ink block flex items-center gap-2">
+                <span>🫁</span>
+                <span>Asthma or chronic lung condition</span>
+              </span>
+              <span class="text-xs text-muted block">Triggers stricter indoor and activity thresholds.</span>
+            </div>
+          </label>
+
+          <label for="heart" class="toggle-card flex items-start gap-3.5 p-3.5 rounded-xl border border-border/80 hover:border-primary/50 bg-white transition-all cursor-pointer">
             <input type="checkbox" id="heart" name="heart"
-              class="mt-0.5 h-5 w-5 rounded border-border text-primary focus:ring-primary">
-            <label for="heart" class="text-sm font-medium text-ink cursor-pointer select-none">
-              Someone has a heart condition
-            </label>
-          </div>
-          <div class="flex items-start gap-3 p-3 rounded-xl border border-border/80 hover:bg-surface/60 transition-colors">
+              class="mt-1 h-5 w-5 rounded border-border text-primary focus:ring-primary accent-primary cursor-pointer">
+            <div class="space-y-0.5">
+              <span class="text-sm font-semibold text-ink block flex items-center gap-2">
+                <span>❤️</span>
+                <span>Heart or cardiovascular condition</span>
+              </span>
+              <span class="text-xs text-muted block">Reduces exertion time limits during elevated PM2.5.</span>
+            </div>
+          </label>
+
+          <label for="pregnant" class="toggle-card flex items-start gap-3.5 p-3.5 rounded-xl border border-border/80 hover:border-primary/50 bg-white transition-all cursor-pointer">
             <input type="checkbox" id="pregnant" name="pregnant"
-              class="mt-0.5 h-5 w-5 rounded border-border text-primary focus:ring-primary">
-            <label for="pregnant" class="text-sm font-medium text-ink cursor-pointer select-none">
-              Someone is pregnant
-            </label>
-          </div>
+              class="mt-1 h-5 w-5 rounded border-border text-primary focus:ring-primary accent-primary cursor-pointer">
+            <div class="space-y-0.5">
+              <span class="text-sm font-semibold text-ink block flex items-center gap-2">
+                <span>🤰</span>
+                <span>Pregnancy</span>
+              </span>
+              <span class="text-xs text-muted block">Applies sensitive maternal protection guidance.</span>
+            </div>
+          </label>
         </div>
         <p class="text-xs text-muted pt-2 border-t border-border">
           Used to adjust the advice and not saved on our server. If you use the AI explanation, a summary that mentions these groups is sent to {{ ai_name }}.
@@ -154,7 +214,15 @@
         </div>
 
         <div>
-          <label for="room_area_sqm" class="block font-medium text-ink mb-1 text-sm">Room area in square metres</label>
+          <div class="flex items-center justify-between mb-1">
+            <label for="room_area_sqm" class="font-medium text-ink text-sm">Room area in square metres</label>
+            <div class="flex items-center gap-1.5">
+              <span class="text-xs text-muted hidden sm:inline">Presets:</span>
+              <button type="button" class="btn-room-preset px-2 py-0.5 rounded-md text-xs border border-border bg-surface text-ink hover:bg-border transition-colors font-medium" data-sqm="15">15 m² Bed</button>
+              <button type="button" class="btn-room-preset px-2 py-0.5 rounded-md text-xs border border-border bg-surface text-ink hover:bg-border transition-colors font-medium" data-sqm="25">25 m² Living</button>
+              <button type="button" class="btn-room-preset px-2 py-0.5 rounded-md text-xs border border-border bg-surface text-ink hover:bg-border transition-colors font-medium" data-sqm="40">40 m² Hall</button>
+            </div>
+          </div>
           <input type="number" id="room_area_sqm" name="room_area_sqm" min="5" max="200" value="20" step="any"
             class="w-full px-4 py-2.5 rounded-xl border border-border focus:border-primary focus:ring-1 focus:ring-primary text-ink min-h-[44px] shadow-2xs"
             aria-describedby="room-helper">
@@ -268,8 +336,11 @@
       <!-- Buttons -->
       <div class="flex flex-col sm:flex-row gap-4 pt-2">
         <button type="submit" id="submit-btn"
-          class="bg-primary hover:bg-primary-dark text-white font-medium px-8 py-3.5 rounded-xl transition-all shadow-xs hover:shadow min-h-[48px] flex items-center justify-center">
-          Build my plan
+          class="bg-primary hover:bg-primary-dark active:scale-[0.98] text-white font-medium px-8 py-3.5 rounded-xl transition-all shadow-xs hover:shadow min-h-[48px] flex items-center justify-center gap-2">
+          <span>Build my plan</span>
+          <svg class="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+          </svg>
         </button>
         <button type="button" id="example-btn"
           class="border border-primary text-primary hover:bg-surface font-medium px-6 py-3.5 rounded-xl transition-colors min-h-[48px] flex items-center justify-center">
