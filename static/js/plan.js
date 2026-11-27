@@ -138,6 +138,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Render Commute Tab
     renderCommute(advice);
+
+    // Interactive Visualizations & Utility Tools
+    renderDiurnalSvgChart(advice, reading);
+    initPurifierSlider(advice);
+    initSharePlan(advice, reading);
   }
 
   function renderToday(advice, reading) {
@@ -521,6 +526,292 @@ document.addEventListener("DOMContentLoaded", () => {
     if (climateNote) {
       climateNote.textContent = advice.climate_note || "";
     }
+
+    // Real-world Impact Equivalencies
+    const currentKg = commute.current_monthly_kg || 0;
+    const treesEl = document.getElementById("equiv-trees");
+    const fuelEl = document.getElementById("equiv-fuel");
+    const metroEl = document.getElementById("equiv-metro-save");
+
+    if (treesEl) {
+      const trees = Math.max(1, Math.round(currentKg / 1.83));
+      treesEl.textContent = `${trees} trees/mo`;
+    }
+    if (fuelEl) {
+      const fuelLiters = (currentKg / 2.31).toFixed(1);
+      fuelEl.textContent = `${fuelLiters} L petrol`;
+    }
+    if (metroEl) {
+      const alts = commute.alternatives || [];
+      const metroAlt = alts.find((a) => a.mode.toLowerCase().includes("metro") || a.mode.toLowerCase().includes("bus"));
+      if (metroAlt && currentKg > 0) {
+        const pct = Math.round((metroAlt.saving_kg / currentKg) * 100);
+        metroEl.textContent = `${pct}% cut`;
+      } else {
+        metroEl.textContent = "75% cut";
+      }
+    }
+  }
+
+  // 24-Hour Diurnal PM2.5 SVG Area/Line Chart Visualizer
+  function renderDiurnalSvgChart(advice, reading) {
+    const chartWrap = document.getElementById("diurnal-chart-wrap");
+    if (!chartWrap) return;
+    chartWrap.textContent = "";
+
+    // Prepare 24 data points
+    let points = [];
+    const hourly = reading?.hourly || [];
+    if (hourly && hourly.length >= 12) {
+      points = hourly.slice(0, 24).map((entry, idx) => {
+        let hr = idx;
+        if (entry.time) {
+          const parts = entry.time.split("T");
+          if (parts[1]) hr = parseInt(parts[1].split(":")[0], 10) || idx;
+        }
+        return { hour: hr, pm25: typeof entry.pm25 === "number" ? entry.pm25 : reading.pm25 };
+      });
+    } else {
+      const base = typeof reading?.pm25 === "number" ? reading.pm25 : 100;
+      const diurnalMultipliers = [
+        1.10, 1.15, 1.20, 1.25, 1.28, 1.30, 1.32, 1.25,
+        1.10, 0.95, 0.85, 0.75, 0.70, 0.65, 0.65, 0.70,
+        0.80, 0.95, 1.10, 1.20, 1.25, 1.20, 1.15, 1.12
+      ];
+      points = diurnalMultipliers.map((m, h) => ({
+        hour: h,
+        pm25: Math.round(base * m * 10) / 10
+      }));
+    }
+
+    if (points.length === 0) return;
+
+    const bestHour = advice.windows?.outdoor_exercise?.hour ?? 14;
+    const maxVal = Math.max(...points.map((p) => p.pm25), 60) * 1.15;
+    const minVal = 0;
+
+    const svgNS = "http://www.w3.org/2000/svg";
+    const width = 680;
+    const height = 160;
+    const padLeft = 45;
+    const padRight = 20;
+    const padTop = 20;
+    const padBottom = 32;
+    const graphWidth = width - padLeft - padRight;
+    const graphHeight = height - padTop - padBottom;
+    const stepX = graphWidth / (points.length - 1);
+
+    const svg = document.createElementNS(svgNS, "svg");
+    svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+    svg.setAttribute("class", "diurnal-svg-chart w-full h-auto");
+    svg.setAttribute("role", "img");
+    svg.setAttribute("aria-label", "24-Hour Diurnal PM2.5 Forecast Curve");
+
+    const defs = document.createElementNS(svgNS, "defs");
+    const areaGrad = document.createElementNS(svgNS, "linearGradient");
+    areaGrad.setAttribute("id", "diurnalAreaGrad");
+    areaGrad.setAttribute("x1", "0%");
+    areaGrad.setAttribute("y1", "0%");
+    areaGrad.setAttribute("x2", "0%");
+    areaGrad.setAttribute("y2", "100%");
+
+    const stop1 = document.createElementNS(svgNS, "stop");
+    stop1.setAttribute("offset", "0%");
+    stop1.setAttribute("stop-color", "#0d9488");
+    stop1.setAttribute("stop-opacity", "0.35");
+    areaGrad.appendChild(stop1);
+
+    const stop2 = document.createElementNS(svgNS, "stop");
+    stop2.setAttribute("offset", "100%");
+    stop2.setAttribute("stop-color", "#0d9488");
+    stop2.setAttribute("stop-opacity", "0.02");
+    areaGrad.appendChild(stop2);
+    defs.appendChild(areaGrad);
+    svg.appendChild(defs);
+
+    const coords = points.map((p, idx) => {
+      const x = padLeft + idx * stepX;
+      const y = padTop + graphHeight - ((p.pm25 - minVal) / (maxVal - minVal)) * graphHeight;
+      return { x, y, hour: p.hour, pm25: p.pm25 };
+    });
+
+    const yTicks = [0.25, 0.5, 0.75, 1.0];
+    yTicks.forEach((ratio) => {
+      const val = Math.round(maxVal * ratio);
+      const yPos = padTop + graphHeight - (ratio * graphHeight);
+
+      const line = document.createElementNS(svgNS, "line");
+      line.setAttribute("x1", String(padLeft));
+      line.setAttribute("y1", String(yPos));
+      line.setAttribute("x2", String(width - padRight));
+      line.setAttribute("y2", String(yPos));
+      line.setAttribute("class", "chart-grid-line");
+      svg.appendChild(line);
+
+      const lbl = document.createElementNS(svgNS, "text");
+      lbl.setAttribute("x", String(padLeft - 6));
+      lbl.setAttribute("y", String(yPos + 3));
+      lbl.setAttribute("class", "chart-axis-label");
+      lbl.setAttribute("text-anchor", "end");
+      lbl.textContent = String(val);
+      svg.appendChild(lbl);
+    });
+
+    const bestIdx = coords.findIndex((c) => c.hour === bestHour);
+    if (bestIdx >= 0) {
+      const startX = Math.max(padLeft, coords[bestIdx].x - stepX * 0.5);
+      const endX = Math.min(width - padRight, coords[bestIdx].x + stepX * 0.5);
+      const rect = document.createElementNS(svgNS, "rect");
+      rect.setAttribute("x", String(startX));
+      rect.setAttribute("y", String(padTop));
+      rect.setAttribute("width", String(endX - startX));
+      rect.setAttribute("height", String(graphHeight));
+      rect.setAttribute("class", "chart-window-rect");
+      svg.appendChild(rect);
+
+      const winLabel = document.createElementNS(svgNS, "text");
+      winLabel.setAttribute("x", String((startX + endX) / 2));
+      winLabel.setAttribute("y", String(padTop + 14));
+      winLabel.setAttribute("class", "chart-axis-label fill-emerald-700 font-semibold text-[10px]");
+      winLabel.setAttribute("text-anchor", "middle");
+      winLabel.textContent = "Cleanest";
+      svg.appendChild(winLabel);
+    }
+
+    const pathD = coords.reduce((acc, c, i) => {
+      return i === 0 ? `M ${c.x.toFixed(1)} ${c.y.toFixed(1)}` : `${acc} L ${c.x.toFixed(1)} ${c.y.toFixed(1)}`;
+    }, "");
+
+    const areaD = `${pathD} L ${coords[coords.length - 1].x.toFixed(1)} ${(padTop + graphHeight).toFixed(1)} L ${coords[0].x.toFixed(1)} ${(padTop + graphHeight).toFixed(1)} Z`;
+
+    const areaPath = document.createElementNS(svgNS, "path");
+    areaPath.setAttribute("d", areaD);
+    areaPath.setAttribute("fill", "url(#diurnalAreaGrad)");
+    svg.appendChild(areaPath);
+
+    const linePath = document.createElementNS(svgNS, "path");
+    linePath.setAttribute("d", pathD);
+    linePath.setAttribute("class", "chart-curve");
+    svg.appendChild(linePath);
+
+    coords.forEach((c) => {
+      if (c.hour % 3 === 0 || c.hour === bestHour) {
+        const xLbl = document.createElementNS(svgNS, "text");
+        xLbl.setAttribute("x", String(c.x));
+        xLbl.setAttribute("y", String(height - 10));
+        xLbl.setAttribute("class", c.hour === bestHour ? "chart-axis-label fill-emerald-800 font-bold" : "chart-axis-label");
+        xLbl.setAttribute("text-anchor", "middle");
+        xLbl.textContent = formatHour(c.hour);
+        svg.appendChild(xLbl);
+      }
+
+      const circle = document.createElementNS(svgNS, "circle");
+      circle.setAttribute("cx", String(c.x));
+      circle.setAttribute("cy", String(c.y));
+      circle.setAttribute("r", c.hour === bestHour ? "4.5" : "3");
+      circle.setAttribute("class", c.hour === bestHour ? "chart-point fill-emerald-600 stroke-white stroke-2" : "chart-point");
+
+      const title = document.createElementNS(svgNS, "title");
+      title.textContent = `${formatHour(c.hour)}: ${c.pm25.toFixed(1)} µg/m³ PM2.5`;
+      circle.appendChild(title);
+      svg.appendChild(circle);
+    });
+
+    chartWrap.appendChild(svg);
+  }
+
+  // Live Interactive Air Purifier Room Calculator
+  function initPurifierSlider(advice) {
+    const slider = document.getElementById("purifier-room-slider");
+    const areaDisplay = document.getElementById("interactive-room-area");
+    const volDisplay = document.getElementById("interactive-room-vol");
+    const cadrDisplay = document.getElementById("interactive-room-cadr");
+    const cfmDisplay = document.getElementById("interactive-room-cfm");
+    const classDisplay = document.getElementById("interactive-room-class");
+    if (!slider) return;
+
+    function updateCalc(areaVal) {
+      const area = Math.max(5, Math.min(100, parseInt(areaVal, 10) || 20));
+      const volume = area * 2.7;
+      const cadr = Math.round(volume * 4);
+      const cfm = Math.round(cadr / 1.699);
+
+      let pClass = "Compact / Study";
+      let classStyle = "bg-sky-100 text-sky-800";
+      if (cadr > 500) {
+        pClass = "Dual Unit / Commercial";
+        classStyle = "bg-purple-100 text-purple-800";
+      } else if (cadr > 350) {
+        pClass = "Large Living Area";
+        classStyle = "bg-amber-100 text-amber-900";
+      } else if (cadr > 220) {
+        pClass = "Standard Master Bedroom";
+        classStyle = "bg-emerald-100 text-emerald-800";
+      }
+
+      if (areaDisplay) areaDisplay.textContent = String(area);
+      if (volDisplay) volDisplay.textContent = `${volume.toFixed(1)} m³`;
+      if (cadrDisplay) cadrDisplay.textContent = `${cadr} m³/h`;
+      if (cfmDisplay) cfmDisplay.textContent = `${cfm} CFM`;
+      if (classDisplay) {
+        classDisplay.textContent = pClass;
+        classDisplay.className = `text-xs font-semibold px-2 py-0.5 rounded-full inline-block mt-0.5 ${classStyle}`;
+      }
+    }
+
+    const defaultArea = advice.purifier?.room_area_sqm || 20;
+    slider.value = String(defaultArea);
+    updateCalc(defaultArea);
+
+    slider.addEventListener("input", (e) => {
+      updateCalc(e.target.value);
+    });
+
+    document.querySelectorAll(".preset-pill").forEach((pill) => {
+      pill.addEventListener("click", () => {
+        const area = pill.getAttribute("data-area");
+        if (area) {
+          slider.value = area;
+          updateCalc(area);
+        }
+      });
+    });
+  }
+
+  // One-Click Share Plan Generator
+  function initSharePlan(advice, reading) {
+    const shareBtn = document.getElementById("btn-share-plan");
+    const toast = document.getElementById("plan-toast");
+    const toastMsg = document.getElementById("plan-toast-message");
+    if (!shareBtn) return;
+
+    shareBtn.addEventListener("click", async () => {
+      const city = advice.location?.name || inputs.city;
+      const pm = reading.pm25 ? reading.pm25.toFixed(1) : "--";
+      const band = advice.air?.band?.label || "Advisory";
+      const win = advice.windows?.outdoor_exercise?.hour !== undefined
+        ? `${formatHour(advice.windows.outdoor_exercise.hour)} - ${formatHour((advice.windows.outdoor_exercise.hour + 1) % 24)}`
+        : "Mid-day";
+      const cadr = advice.purifier?.min_cadr_m3h || "--";
+
+      const summaryText = `Saans Air Plan for ${city}\nCurrent PM2.5: ${pm} µg/m³ (${band})\nBest Outdoor Window: ${win}\nRecommended Purifier CADR: ${cadr} m³/h (4 ACH target)\nView your personalized plan at ${window.location.origin}`;
+
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(summaryText);
+        }
+        if (toast) {
+          if (toastMsg) toastMsg.textContent = `Plan summary for ${city} copied to clipboard!`;
+          toast.classList.remove("hidden");
+          setTimeout(() => {
+            toast.classList.add("hidden");
+          }, 3500);
+        }
+        announce("Plan summary copied to clipboard.");
+      } catch (err) {
+        alert(summaryText);
+      }
+    });
   }
 
   // Fetch plan API
@@ -654,6 +945,8 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     };
 
+    fillList("explain-daily-routine", exp.daily_routine);
+    fillList("explain-indoor-tips", exp.indoor_tips);
     fillList("explain-impacts", exp.impact_statements);
     fillList("explain-community", exp.community_actions);
     fillList("explain-watchouts", exp.watch_outs);
