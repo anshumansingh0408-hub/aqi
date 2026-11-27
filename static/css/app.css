@@ -4,9 +4,11 @@
   --color-ink: #14212B;
   --color-primary: #0F5E5A;
   --color-primary-dark: #0A4642;
+  --color-primary-light: #E6F3F2;
   --color-surface: #F3F7F7;
   --color-border: #D5E0E0;
   --color-muted: #4B5C66;
+  --color-card-bg: #FFFFFF;
 }
 
 body {
@@ -15,11 +17,14 @@ body {
   font-size: 1.0625rem;
   line-height: 1.65;
   background-color: #F8FAFA;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 h1, h2, h3, h4, h5, h6 {
   font-family: 'Source Serif 4', Georgia, serif;
   color: var(--color-ink);
+  letter-spacing: -0.015em;
 }
 
 h1 {
@@ -29,7 +34,7 @@ h1 {
 }
 
 h2 {
-  font-size: 2rem;
+  font-size: 1.875rem;
   line-height: 1.25;
   font-weight: 600;
 }
@@ -56,11 +61,12 @@ button, a.btn, input[type="submit"], input[type="button"], select {
   left: 16px;
   background-color: var(--color-primary);
   color: #FFFFFF;
-  padding: 10px 16px;
+  padding: 10px 18px;
   font-weight: 600;
-  border-radius: 4px;
+  border-radius: 8px;
   z-index: 9999;
   text-decoration: none;
+  box-shadow: 0 4px 12px rgba(15, 94, 90, 0.25);
   transition: top 0.15s ease-in-out;
 }
 
@@ -72,8 +78,8 @@ button, a.btn, input[type="submit"], input[type="button"], select {
 .saans-card {
   background-color: #FFFFFF;
   border: 1px solid var(--color-border);
-  border-radius: 16px;
-  box-shadow: 0 1px 3px rgba(20, 33, 43, 0.04);
+  border-radius: 20px;
+  box-shadow: 0 2px 6px rgba(20, 33, 43, 0.03), 0 1px 2px rgba(20, 33, 43, 0.02);
   transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
               box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1),
               border-color 0.25s ease;
@@ -85,8 +91,8 @@ button, a.btn, input[type="submit"], input[type="button"], select {
 
 .saans-card-interactive:hover {
   transform: translateY(-3px);
-  box-shadow: 0 12px 28px -6px rgba(15, 94, 90, 0.12),
-              0 4px 10px -2px rgba(20, 33, 43, 0.05);
+  box-shadow: 0 14px 30px -8px rgba(15, 94, 90, 0.12),
+              0 4px 12px -2px rgba(20, 33, 43, 0.04);
   border-color: #A3C7C5;
 }
 
@@ -95,60 +101,60 @@ button, a.btn, input[type="submit"], input[type="button"], select {
   background: rgba(255, 255, 255, 0.94);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(213, 224, 224, 0.85);
-  border-radius: 16px;
+  border: 1px solid rgba(213, 224, 224, 0.9);
+  border-radius: 20px;
 }
 
 /* Ambient hero atmospheric aura */
 .hero-bg-gradient {
-  background: radial-gradient(circle at 88% 25%, rgba(15, 94, 90, 0.09) 0%, rgba(243, 247, 247, 0.6) 45%, rgba(248, 250, 250, 0) 80%);
+  background: radial-gradient(circle at 88% 25%, rgba(15, 94, 90, 0.08) 0%, rgba(243, 247, 247, 0.7) 45%, rgba(248, 250, 250, 0) 80%);
 }
 
 /* Dynamic Ambient Tinting based on current AQI Band (Inspired by IQAir & BreezoMeter) */
 .ambient-good {
-  background: linear-gradient(145deg, rgba(20, 83, 45, 0.04) 0%, #FFFFFF 100%);
-  border-color: #BBF7D0;
+  background: linear-gradient(145deg, rgba(16, 185, 129, 0.06) 0%, #FFFFFF 100%);
+  border-color: #A7F3D0;
 }
 
 .ambient-satisfactory {
-  background: linear-gradient(145deg, rgba(63, 98, 18, 0.04) 0%, #FFFFFF 100%);
+  background: linear-gradient(145deg, rgba(132, 204, 22, 0.06) 0%, #FFFFFF 100%);
   border-color: #D9F99D;
 }
 
 .ambient-moderate {
-  background: linear-gradient(145deg, rgba(120, 53, 15, 0.04) 0%, #FFFFFF 100%);
-  border-color: #FED7AA;
+  background: linear-gradient(145deg, rgba(245, 158, 11, 0.06) 0%, #FFFFFF 100%);
+  border-color: #FDE68A;
 }
 
 .ambient-poor {
-  background: linear-gradient(145deg, rgba(124, 45, 18, 0.05) 0%, #FFFFFF 100%);
-  border-color: #FFEDD5;
+  background: linear-gradient(145deg, rgba(249, 115, 22, 0.07) 0%, #FFFFFF 100%);
+  border-color: #FED7AA;
 }
 
 .ambient-very_poor {
-  background: linear-gradient(145deg, rgba(127, 29, 29, 0.05) 0%, #FFFFFF 100%);
+  background: linear-gradient(145deg, rgba(239, 68, 68, 0.07) 0%, #FFFFFF 100%);
   border-color: #FECACA;
 }
 
 .ambient-severe {
-  background: linear-gradient(145deg, rgba(74, 29, 107, 0.06) 0%, #FFFFFF 100%);
-  border-color: #E9D5FF;
+  background: linear-gradient(145deg, rgba(139, 92, 246, 0.08) 0%, #FFFFFF 100%);
+  border-color: #DDD6FE;
 }
 
 /* Breathing ambient glow (Saans = Breath) */
 @keyframes breatheAura {
   0%, 100% {
     transform: scale(1);
-    opacity: 0.4;
+    opacity: 0.45;
   }
   50% {
-    transform: scale(1.08);
+    transform: scale(1.06);
     opacity: 0.75;
   }
 }
 
 .aura-breathe {
-  animation: breatheAura 4s ease-in-out infinite;
+  animation: breatheAura 5s ease-in-out infinite;
 }
 
 /* Live pulsing status dot */
@@ -179,28 +185,28 @@ button, a.btn, input[type="submit"], input[type="button"], select {
 /* Air Quality Spectrum Gauge (Inspired by IQAir & Apple Weather) */
 .spectrum-track {
   position: relative;
-  height: 10px;
+  height: 12px;
   border-radius: 9999px;
   background: linear-gradient(to right,
-    #22C55E 0%, #22C55E 12%,
+    #10B981 0%, #10B981 12%,
     #84CC16 12%, #84CC16 24%,
-    #EAB308 24%, #EAB308 36%,
+    #F59E0B 24%, #F59E0B 36%,
     #F97316 36%, #F97316 48%,
     #EF4444 48%, #EF4444 80%,
     #8B5CF6 80%, #8B5CF6 100%
   );
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.15);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.16);
 }
 
 .spectrum-pointer {
   position: absolute;
   top: -6px;
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
   background: #FFFFFF;
-  border: 3px solid var(--color-ink);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.28);
+  border: 3.5px solid var(--color-ink);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   transform: translateX(-50%);
   transition: left 0.8s cubic-bezier(0.16, 1, 0.3, 1);
   pointer-events: none;
@@ -233,7 +239,7 @@ button, a.btn, input[type="submit"], input[type="button"], select {
 .band-chip {
   display: inline-flex;
   align-items: center;
-  padding: 4px 12px;
+  padding: 5px 14px;
   border-radius: 9999px;
   font-size: 0.875rem;
   font-weight: 600;
@@ -242,42 +248,42 @@ button, a.btn, input[type="submit"], input[type="button"], select {
 }
 
 .band-good {
-  background-color: #E3F3E7;
-  color: #14532D;
+  background-color: #D1FAE5;
+  color: #065F46;
 }
 
 .band-satisfactory {
-  background-color: #ECF5D2;
+  background-color: #ECFCCB;
   color: #3F6212;
 }
 
 .band-moderate {
-  background-color: #FDF0C4;
-  color: #78350F;
+  background-color: #FEF3C7;
+  color: #92400E;
 }
 
 .band-poor {
-  background-color: #FFE2CC;
-  color: #7C2D12;
+  background-color: #FFEDD5;
+  color: #9A3412;
 }
 
 .band-very_poor {
-  background-color: #FBDADA;
-  color: #7F1D1D;
+  background-color: #FEE2E2;
+  color: #991B1B;
 }
 
 .band-severe {
-  background-color: #EAD8F2;
-  color: #4A1D6B;
+  background-color: #EDE9FE;
+  color: #5B21B6;
 }
 
-/* Hourly Timeline Scroller */
+/* Daylight Forecast Timeline Scroller */
 .timeline-scroller {
   display: flex;
   gap: 12px;
   overflow-x: auto;
+  scroll-snap-type: x proximity;
   padding-bottom: 8px;
-  scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
 }
 
@@ -287,35 +293,81 @@ button, a.btn, input[type="submit"], input[type="button"], select {
 
 .timeline-scroller::-webkit-scrollbar-track {
   background: #EDF3F3;
-  border-radius: 4px;
+  border-radius: 9999px;
 }
 
 .timeline-scroller::-webkit-scrollbar-thumb {
-  background: #B2D0D0;
-  border-radius: 4px;
+  background: #CBD7D7;
+  border-radius: 9999px;
+}
+
+.timeline-scroller::-webkit-scrollbar-thumb:hover {
+  background: #9DB4B4;
 }
 
 .timeline-card {
-  flex: 0 0 110px;
+  flex: 0 0 102px;
+  scroll-snap-align: start;
   background: #FFFFFF;
   border: 1px solid var(--color-border);
-  border-radius: 12px;
-  padding: 10px;
+  border-radius: 14px;
+  padding: 12px 10px;
   text-align: center;
-  transition: all 0.2s ease;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.timeline-card:hover {
+  transform: translateY(-2px);
 }
 
 .timeline-card-highlight {
   border-color: #10B981;
-  background: #ECFDF5;
+  background: #F0FDF4;
   box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
 }
 
-/* Subtle fade in keyframe */
-@keyframes fadeInUp {
+/* Chat bubble styling */
+.chat-bubble-user {
+  background-color: #F3F7F7;
+  border: 1px solid #D5E0E0;
+  border-radius: 18px 18px 4px 18px;
+}
+
+.chat-bubble-ai {
+  background-color: #FFFFFF;
+  border: 1px solid #D5E0E0;
+  border-radius: 18px 18px 18px 4px;
+  box-shadow: 0 2px 8px rgba(15, 94, 90, 0.05);
+}
+
+/* Step badge for setup forms */
+.step-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background-color: var(--color-primary-light);
+  color: var(--color-primary);
+  font-weight: 700;
+  font-size: 0.875rem;
+}
+
+/* Accordion FAQ micro-transitions */
+details summary::-webkit-details-marker {
+  display: none;
+}
+
+details[open] summary svg {
+  transform: rotate(180deg);
+}
+
+/* Smooth fade in animation */
+@keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(6px);
   }
   to {
     opacity: 1;
@@ -324,46 +376,47 @@ button, a.btn, input[type="submit"], input[type="button"], select {
 }
 
 .animate-fade-in {
-  animation: fadeInUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* Table container preventing horizontal page scroll */
+/* Responsive Table Wrapper */
 .table-container {
   overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  max-width: 100%;
+  border-radius: 14px;
+  border: 1px solid var(--color-border);
 }
 
-/* Prefers reduced motion */
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
-}
-
-/* Print styles */
+/* Print Stylesheet for High Contrast Export */
 @media print {
-  header, footer, nav, button, .no-print, [role="tablist"], #tabpanel-ask {
-    display: none !important;
-  }
-  #tabpanel-today, #tabpanel-indoors, #tabpanel-commute, #tabpanel-explain {
-    display: block !important;
-    visibility: visible !important;
-    page-break-after: always;
-  }
   body {
     background-color: #FFFFFF !important;
     color: #000000 !important;
+    font-size: 11pt;
   }
-  .saans-card {
-    border: 1px solid #CCCCCC !important;
+
+  header, footer, .no-print, [role="tablist"], #plan-loading, .skip-link {
+    display: none !important;
+  }
+
+  main {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  [role="tabpanel"] {
+    display: block !important;
+    margin-bottom: 24pt !important;
+    page-break-inside: avoid;
+  }
+
+  .saans-card, .glass-card {
     box-shadow: none !important;
+    border: 1px solid #666666 !important;
+    background: #FFFFFF !important;
     break-inside: avoid;
   }
-  tr {
-    page-break-inside: avoid;
+
+  .spectrum-track, .bar-track {
+    border: 1px solid #000000 !important;
   }
 }
