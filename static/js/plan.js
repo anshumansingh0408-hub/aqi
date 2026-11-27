@@ -348,9 +348,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const tbody = el("tbody", null, "divide-y divide-border");
         const acts = [
-          {key: "outdoor_exercise", label: "Outdoor exercise"},
-          {key: "errands", label: "Errands"},
-          {key: "window_ventilation", label: "Airing the home"}
+          { key: "outdoor_exercise", label: "Outdoor exercise" },
+          { key: "errands", label: "Errands" },
+          { key: "window_ventilation", label: "Airing the home" }
         ];
 
         acts.forEach((act) => {
@@ -602,6 +602,48 @@ document.addEventListener("DOMContentLoaded", () => {
     const summaryEl = document.getElementById("explain-summary");
     if (summaryEl) summaryEl.textContent = exp.summary || "";
 
+    // Daily routine: array of {time_of_day, suggestion, reason}
+    const routineList = document.getElementById("explain-daily-routine");
+    if (routineList) {
+      routineList.textContent = "";
+      (exp.daily_routine || []).forEach((item) => {
+        const li = el("li", null, "mb-2 text-ink");
+        if (typeof item === "object" && item !== null) {
+          const timeBadge = el("span", `[${item.time_of_day || "Schedule"}] `, "font-semibold text-primary");
+          const sugg = el("span", item.suggestion || "");
+          li.appendChild(timeBadge);
+          li.appendChild(sugg);
+          if (item.reason) {
+            const r = el("span", ` — ${item.reason}`, "text-xs text-muted block mt-0.5");
+            li.appendChild(r);
+          }
+        } else {
+          li.textContent = String(item);
+        }
+        routineList.appendChild(li);
+      });
+    }
+
+    // Indoor tips: array of {action, impact}
+    const indoorList = document.getElementById("explain-indoor-tips");
+    if (indoorList) {
+      indoorList.textContent = "";
+      (exp.indoor_tips || []).forEach((item) => {
+        const li = el("li", null, "mb-2 text-ink");
+        if (typeof item === "object" && item !== null) {
+          const act = el("span", item.action || "Action", "font-semibold text-ink");
+          li.appendChild(act);
+          if (item.impact) {
+            const imp = el("span", ` — ${item.impact}`, "text-xs text-muted block mt-0.5");
+            li.appendChild(imp);
+          }
+        } else {
+          li.textContent = String(item);
+        }
+        indoorList.appendChild(li);
+      });
+    }
+
     const fillList = (id, items) => {
       const listEl = document.getElementById(id);
       if (listEl) {
@@ -612,8 +654,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     };
 
-    fillList("explain-daily-routine", exp.daily_routine);
-    fillList("explain-indoor-tips", exp.indoor_tips);
     fillList("explain-impacts", exp.impact_statements);
     fillList("explain-community", exp.community_actions);
     fillList("explain-watchouts", exp.watch_outs);
@@ -664,7 +704,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (askBtn) askBtn.disabled = true;
     askSpinner?.classList.remove("hidden");
 
-    const payload = Object.assign({}, inputs, {question: q});
+    const payload = Object.assign({}, inputs, { question: q });
     const result = await api("/api/ask", payload);
 
     if (askBtn) askBtn.disabled = false;
@@ -677,13 +717,28 @@ document.addEventListener("DOMContentLoaded", () => {
 
     askEmptyNotice?.classList.add("hidden");
 
-    // Prepend Q&A Card
-    const qaCard = el("div", null, "p-5 rounded-xl border border-border bg-surface space-y-2.5");
-    qaCard.appendChild(el("h4", `Q: ${q}`, "font-bold text-ink text-base"));
-    qaCard.appendChild(el("p", result.data.answer || "No response.", "text-sm text-ink leading-relaxed"));
+    // Prepend Q&A Card with Chat Bubble styling
+    const qaCard = el("div", null, "p-5 rounded-2xl border border-border bg-white shadow-2xs space-y-4");
 
-    const footer = el("div", null, "pt-2 border-t border-border flex items-center justify-between text-xs text-muted");
-    footer.appendChild(el("span", result.data.source === "fallback" ? "Rule-based answer" : "Grounded answer"));
+    // User question bubble
+    const userBubble = el("div", null, "chat-bubble-user p-4 space-y-1");
+    const userMeta = el("div", null, "flex items-center gap-1.5 text-xs font-bold text-muted uppercase tracking-wider");
+    userMeta.appendChild(el("span", "Your Question"));
+    userBubble.appendChild(userMeta);
+    userBubble.appendChild(el("p", q, "text-sm font-semibold text-ink"));
+    qaCard.appendChild(userBubble);
+
+    // AI answer bubble
+    const aiBubble = el("div", null, "chat-bubble-ai p-4 space-y-1.5");
+    const aiMeta = el("div", null, "flex items-center justify-between text-xs text-primary font-bold");
+    aiMeta.appendChild(el("span", "Saans Assistant"));
+    aiMeta.appendChild(el("span", result.data.source === "fallback" ? "Rule Engine Verified" : "Plan Verified", "text-[11px] font-medium text-muted"));
+    aiBubble.appendChild(aiMeta);
+    aiBubble.appendChild(el("p", result.data.answer || "No response.", "text-sm text-ink leading-relaxed"));
+    qaCard.appendChild(aiBubble);
+
+    const footer = el("div", null, "pt-1 flex items-center justify-between text-[11px] text-muted");
+    footer.appendChild(el("span", "Strictly grounded in your computed plan"));
     footer.appendChild(el("span", "General precaution, not medical advice"));
     qaCard.appendChild(footer);
 
