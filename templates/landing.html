@@ -12,7 +12,8 @@
     <!-- SECTION 1: HERO -->
     <section class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
       <div class="lg:col-span-7 space-y-6">
-        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-border text-xs font-semibold text-primary shadow-xs">
+        <div
+          class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-border text-xs font-semibold text-primary shadow-xs">
           <span class="live-pulse" aria-hidden="true"></span>
           <span>Winter smog season guidance</span>
         </div>
@@ -20,13 +21,16 @@
           Know today's air, and what to do about it.
         </h1>
         <p class="text-lg text-muted max-w-[55ch] leading-relaxed">
-          Practical, hour-by-hour air quality guidance and cleaner commute alternatives tailored to your family during winter smog.
+          Practical, hour-by-hour air quality guidance and cleaner commute alternatives tailored to your family during
+          winter smog.
         </p>
         <div class="flex flex-wrap items-center gap-4 pt-2">
-          <a href="/create" class="bg-primary hover:bg-primary-dark text-white font-medium px-7 py-3.5 rounded-xl shadow-xs hover:shadow transition-all duration-200 flex items-center justify-center min-h-[48px]">
+          <a href="/create"
+            class="bg-primary hover:bg-primary-dark text-white font-medium px-7 py-3.5 rounded-xl shadow-xs hover:shadow transition-all duration-200 flex items-center justify-center min-h-[48px]">
             Start planning
           </a>
-          <a href="#how-it-works" class="border border-border bg-white hover:bg-surface text-ink font-medium px-6 py-3.5 rounded-xl transition-colors flex items-center justify-center min-h-[48px]">
+          <a href="#how-it-works"
+            class="border border-border bg-white hover:bg-surface text-ink font-medium px-6 py-3.5 rounded-xl transition-colors flex items-center justify-center min-h-[48px]">
             How it works
           </a>
         </div>
@@ -35,7 +39,9 @@
       <!-- Live Interactive Preview Card -->
       <div class="lg:col-span-5 relative">
         <!-- Ambient breathing aura -->
-        <div class="absolute -inset-4 bg-gradient-to-tr from-primary/10 via-amber-100/30 to-purple-100/20 rounded-3xl blur-xl -z-10 aura-breathe" aria-hidden="true"></div>
+        <div
+          class="absolute -inset-4 bg-gradient-to-tr from-primary/10 via-amber-100/30 to-purple-100/20 rounded-3xl blur-xl -z-10 aura-breathe"
+          aria-hidden="true"></div>
 
         <div id="landing-example-card" class="glass-card p-6 shadow-md border border-border space-y-5">
           <!-- City Switcher Pills -->
@@ -52,16 +58,28 @@
 
           <!-- City Selector Buttons (IQAir style quick toggles) -->
           <div class="flex flex-wrap gap-1.5 pt-1">
-            <button type="button" class="btn-city-pill px-3 py-1 rounded-full text-xs font-semibold bg-primary text-white transition-all min-h-[32px]" data-city="Delhi" data-pm25="180.0" data-band="Very Poor" data-band-class="band-very_poor" data-vent="Keep closed" data-best="13:00 - 15:00">
+            <button type="button"
+              class="btn-city-pill px-3 py-1 rounded-full text-xs font-semibold bg-primary text-white transition-all min-h-[32px]"
+              data-city="Delhi" data-pm25="180.0" data-band="Very Poor" data-band-class="band-very_poor"
+              data-vent="Keep closed" data-best="13:00 - 15:00">
               Delhi
             </button>
-            <button type="button" class="btn-city-pill px-3 py-1 rounded-full text-xs font-medium bg-surface text-muted hover:text-ink hover:bg-border/60 transition-all min-h-[32px]" data-city="Lucknow" data-pm25="145.0" data-band="Very Poor" data-band-class="band-very_poor" data-vent="Keep closed" data-best="12:00 - 14:00">
+            <button type="button"
+              class="btn-city-pill px-3 py-1 rounded-full text-xs font-medium bg-surface text-muted hover:text-ink hover:bg-border/60 transition-all min-h-[32px]"
+              data-city="Lucknow" data-pm25="145.0" data-band="Very Poor" data-band-class="band-very_poor"
+              data-vent="Keep closed" data-best="12:00 - 14:00">
               Lucknow
             </button>
-            <button type="button" class="btn-city-pill px-3 py-1 rounded-full text-xs font-medium bg-surface text-muted hover:text-ink hover:bg-border/60 transition-all min-h-[32px]" data-city="Patna" data-pm25="165.0" data-band="Very Poor" data-band-class="band-very_poor" data-vent="Keep closed" data-best="13:00 - 15:00">
+            <button type="button"
+              class="btn-city-pill px-3 py-1 rounded-full text-xs font-medium bg-surface text-muted hover:text-ink hover:bg-border/60 transition-all min-h-[32px]"
+              data-city="Patna" data-pm25="165.0" data-band="Very Poor" data-band-class="band-very_poor"
+              data-vent="Keep closed" data-best="13:00 - 15:00">
               Patna
             </button>
-            <button type="button" class="btn-city-pill px-3 py-1 rounded-full text-xs font-medium bg-surface text-muted hover:text-ink hover:bg-border/60 transition-all min-h-[32px]" data-city="Mumbai" data-pm25="75.0" data-band="Moderate" data-band-class="band-moderate" data-vent="Open mid-day" data-best="11:00 - 16:00">
+            <button type="button"
+              class="btn-city-pill px-3 py-1 rounded-full text-xs font-medium bg-surface text-muted hover:text-ink hover:bg-border/60 transition-all min-h-[32px]"
+              data-city="Mumbai" data-pm25="75.0" data-band="Moderate" data-band-class="band-moderate"
+              data-vent="Open mid-day" data-best="11:00 - 16:00">
               Mumbai
             </button>
           </div>
@@ -78,7 +96,8 @@
 
             <!-- Visual spectrum track (Apple Weather capsule) -->
             <div>
-              <div class="spectrum-track" role="meter" aria-label="PM2.5 Spectrum" aria-valuenow="180" aria-valuemin="0" aria-valuemax="300">
+              <div class="spectrum-track" role="meter" aria-label="PM2.5 Spectrum" aria-valuenow="180" aria-valuemin="0"
+                aria-valuemax="300">
                 <div class="spectrum-pointer" id="example-spectrum-pointer" style="left: 68%;"></div>
               </div>
               <div class="flex justify-between text-[10px] text-muted font-medium mt-1.5 px-0.5">
@@ -126,7 +145,8 @@
         How Saans builds your plan
       </h2>
       <p class="text-muted text-base leading-relaxed">
-        We turn atmospheric dispersion models into practical household steps. Every figure is produced by deterministic, verified rules.
+        We turn atmospheric dispersion models into practical household steps. Every figure is produced by deterministic,
+        verified rules.
       </p>
     </div>
 
@@ -137,7 +157,8 @@
           <span class="step-badge">1</span>
           <h3 class="text-xl font-bold font-serif text-ink">Location Reading</h3>
           <p class="text-sm text-muted leading-relaxed">
-            Resolves your city via Open-Meteo atmospheric forecast models or accepts direct entry from a personal air monitor.
+            Resolves your city via Open-Meteo atmospheric forecast models or accepts direct entry from a personal air
+            monitor.
           </p>
         </div>
         <div class="pt-2 text-xs font-semibold text-primary">Live Geocoded Models</div>
@@ -149,7 +170,8 @@
           <span class="step-badge">2</span>
           <h3 class="text-xl font-bold font-serif text-ink">Diurnal Timing</h3>
           <p class="text-sm text-muted leading-relaxed">
-            Identifies cleaner midday windows for exercise, errands, and airing when thermal dispersion lifts winter surface smog.
+            Identifies cleaner midday windows for exercise, errands, and airing when thermal dispersion lifts winter
+            surface smog.
           </p>
         </div>
         <div class="pt-2 text-xs font-semibold text-primary">Thermal Inversion Curves</div>
@@ -161,7 +183,8 @@
           <span class="step-badge">3</span>
           <h3 class="text-xl font-bold font-serif text-ink">Indoor CADR Sizing</h3>
           <p class="text-sm text-muted leading-relaxed">
-            Calculates clean air delivery rates tailored to room square footage and ceiling height for a target of 4 air changes per hour.
+            Calculates clean air delivery rates tailored to room square footage and ceiling height for a target of 4 air
+            changes per hour.
           </p>
         </div>
         <div class="pt-2 text-xs font-semibold text-primary">4 Air Changes Per Hour</div>
@@ -173,7 +196,8 @@
           <span class="step-badge">4</span>
           <h3 class="text-xl font-bold font-serif text-ink">Plain Explanations</h3>
           <p class="text-sm text-muted leading-relaxed">
-            Synthesizes your plan into conversational advice using {{ ai_name }}, with strict filtering to drop ungrounded numbers.
+            Synthesizes your plan into conversational advice using {{ ai_name }}, with strict filtering to drop
+            ungrounded numbers.
           </p>
         </div>
         <div class="pt-2 text-xs font-semibold text-primary">Grounded AI Verification</div>
@@ -193,7 +217,8 @@
           Our guidance maps directly to standard Indian PM2.5 concentration bands.
         </p>
       </div>
-      <a href="/about" class="text-sm font-semibold text-primary hover:text-primary-dark transition-colors inline-flex items-center gap-1">
+      <a href="/about"
+        class="text-sm font-semibold text-primary hover:text-primary-dark transition-colors inline-flex items-center gap-1">
         Read full methodology &rarr;
       </a>
     </div>
@@ -245,12 +270,15 @@
       <details class="saans-card p-5 group cursor-pointer">
         <summary class="flex justify-between items-center font-bold text-ink text-base list-none">
           <span>Are Open-Meteo readings the same as nearby ground monitors?</span>
-          <svg class="w-5 h-5 text-muted transition-transform group-open:rotate-180 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+          <svg class="w-5 h-5 text-muted transition-transform group-open:rotate-180 flex-shrink-0" fill="none"
+            stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
           </svg>
         </summary>
         <p class="text-sm text-muted leading-relaxed mt-3 pt-3 border-t border-border">
-          No. Open-Meteo produces atmospheric model estimates that combine satellite observations with meteorological simulations. They provide an accurate general picture across a city, but local ground monitors can measure higher concentrations near traffic or localized dust.
+          No. Open-Meteo produces atmospheric model estimates that combine satellite observations with meteorological
+          simulations. They provide an accurate general picture across a city, but local ground monitors can measure
+          higher concentrations near traffic or localized dust.
         </p>
       </details>
 
@@ -258,30 +286,37 @@
         <summary class="flex justify-between items-center font-bold text-ink text-base list-none">
           <span>What is diurnal thermal inversion?</span>
           <summary-marker class="hidden"></summary-marker>
-          <svg class="w-5 h-5 text-muted transition-transform group-open:rotate-180 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+          <svg class="w-5 h-5 text-muted transition-transform group-open:rotate-180 flex-shrink-0" fill="none"
+            stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
           </svg>
         </summary>
         <p class="text-sm text-muted leading-relaxed mt-3 pt-3 border-t border-border">
-          During winter nights and early mornings, cold air stays trapped near the ground beneath a layer of warm air, holding smoke and emissions close to breathing height. Midday solar heating breaks this inversion, allowing cleaner dispersion between 11:00 and 16:00.
+          During winter nights and early mornings, cold air stays trapped near the ground beneath a layer of warm air,
+          holding smoke and emissions close to breathing height. Midday solar heating breaks this inversion, allowing
+          cleaner dispersion between 11:00 and 16:00.
         </p>
       </details>
 
       <details class="saans-card p-5 group cursor-pointer">
         <summary class="flex justify-between items-center font-bold text-ink text-base list-none">
           <span>Does the AI ever change numbers or medical rules?</span>
-          <svg class="w-5 h-5 text-muted transition-transform group-open:rotate-180 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+          <svg class="w-5 h-5 text-muted transition-transform group-open:rotate-180 flex-shrink-0" fill="none"
+            stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
           </svg>
         </summary>
         <p class="text-sm text-muted leading-relaxed mt-3 pt-3 border-t border-border">
-          No. All calculations are performed deterministically in Python before any AI is called. The language model (powered by {{ ai_name }}) is only asked to synthesize explanations, and a strict numeric verification filter drops any ungrounded figures from the response.
+          No. All calculations are performed deterministically in Python before any AI is called. The language model
+          (powered by {{ ai_name }}) is only asked to synthesize explanations, and a strict numeric verification filter
+          drops any ungrounded figures from the response.
         </p>
       </details>
     </div>
 
     <div class="text-center pt-6">
-      <a href="/create" class="inline-flex items-center justify-center bg-primary hover:bg-primary-dark text-white font-medium px-8 py-3.5 rounded-xl transition-all shadow-xs min-h-[48px]">
+      <a href="/create"
+        class="inline-flex items-center justify-center bg-primary hover:bg-primary-dark text-white font-medium px-8 py-3.5 rounded-xl transition-all shadow-xs min-h-[48px]">
         Generate your household plan &rarr;
       </a>
     </div>
