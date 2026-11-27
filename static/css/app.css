@@ -386,6 +386,86 @@ details[open] summary svg {
   border: 1px solid var(--color-border);
 }
 
+/* Diurnal SVG Chart Styles */
+.diurnal-svg-chart {
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.chart-grid-line {
+  stroke: #E2E8F0;
+  stroke-dasharray: 3 3;
+  stroke-width: 1;
+}
+
+.chart-curve {
+  fill: none;
+  stroke: #0F5E5A;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.chart-point {
+  fill: #FFFFFF;
+  stroke: #0F5E5A;
+  stroke-width: 2.5;
+  transition: r 0.2s ease, fill 0.2s ease;
+  cursor: pointer;
+}
+
+.chart-point:hover {
+  r: 6;
+  fill: #0F5E5A;
+}
+
+.chart-window-rect {
+  fill: rgba(16, 185, 129, 0.12);
+  stroke: #10B981;
+  stroke-width: 1.5;
+  stroke-dasharray: 4 4;
+  rx: 6;
+}
+
+/* Custom Range Input */
+input[type="range"] {
+  accent-color: var(--color-primary);
+  height: 6px;
+  border-radius: 9999px;
+  cursor: pointer;
+}
+
+/* Notification Toast */
+.toast-banner {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9999;
+  background-color: var(--color-ink);
+  color: #FFFFFF;
+  padding: 12px 20px;
+  border-radius: 14px;
+  box-shadow: 0 10px 25px -5px rgba(20, 33, 43, 0.25);
+  font-size: 0.875rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  animation: slideUpToast 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes slideUpToast {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* Print Stylesheet for High Contrast Export */
 @media print {
   body {
