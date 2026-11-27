@@ -47,10 +47,21 @@
           <button type="button" id="btn-refresh-reading" class="border border-border bg-white hover:bg-surface text-ink px-4 py-2 rounded-xl text-sm font-medium transition-colors flex items-center min-h-[44px]">
             Refresh reading
           </button>
+          <button type="button" id="btn-share-plan" class="border border-border bg-white hover:bg-surface text-ink px-4 py-2 rounded-xl text-sm font-medium transition-colors flex items-center gap-2 min-h-[44px]">
+            <svg class="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/>
+            </svg>
+            <span>Share summary</span>
+          </button>
           <button type="button" id="btn-print-plan" class="bg-primary hover:bg-primary-dark text-white px-5 py-2 rounded-xl text-sm font-medium transition-colors flex items-center min-h-[44px] shadow-xs">
             Print or save as PDF
           </button>
         </div>
+      </div>
+
+      <!-- Toast notification for actions like share -->
+      <div id="plan-toast" class="toast-banner hidden mt-3" role="status" aria-live="polite">
+        <span id="plan-toast-message">Plan summary copied to clipboard!</span>
       </div>
 
       <!-- Source notification box -->
@@ -229,14 +240,31 @@
 
       <!-- Best times today table & hourly timeline -->
       <section aria-labelledby="best-times-heading" class="saans-card p-6">
-        <h2 id="best-times-heading" class="text-xl font-serif font-bold text-ink mb-2">
-          Best times today
-        </h2>
-        <p class="text-sm text-muted mb-4">
-          Atmospheric forecast windows showing estimated cleaner hours for outdoor tasks.
-        </p>
-        <div id="best-times-container">
-          <!-- Injected via DOM (table or unavailable notice) -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+          <div>
+            <h2 id="best-times-heading" class="text-xl font-serif font-bold text-ink">
+              24-Hour Diurnal Forecast Curve
+            </h2>
+            <p class="text-sm text-muted">
+              Model hourly progression tracking thermal inversion morning spikes and afternoon dispersion windows.
+            </p>
+          </div>
+          <div class="flex items-center gap-3 text-xs text-muted" id="chart-legend-badge">
+            <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>Cleanest Window</span>
+            <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-primary"></span>Model Trend</span>
+          </div>
+        </div>
+
+        <!-- Interactive SVG Chart Area -->
+        <div id="diurnal-chart-wrap" class="w-full overflow-x-auto pb-2">
+          <!-- Injected via DOM with createElementNS -->
+        </div>
+
+        <div class="mt-6 pt-4 border-t border-border">
+          <h3 class="text-base font-semibold text-ink mb-2">Hourly forecast breakdown</h3>
+          <div id="best-times-container">
+            <!-- Injected via DOM (table or unavailable notice) -->
+          </div>
         </div>
       </section>
 
@@ -266,14 +294,66 @@
         </div>
       </section>
 
-      <!-- Purifier Sizing -->
+      <!-- Purifier Sizing with Interactive Calculator -->
       <section aria-labelledby="purifier-sizing-heading" class="saans-card p-6">
         <h2 id="purifier-sizing-heading" class="text-xl font-serif font-bold text-ink mb-2">
-          Air purifier sizing guide
+          Air purifier sizing guide & calculator
         </h2>
         <p class="text-sm text-muted mb-4">
-          Targeting 4 air changes per hour (ACH) for your primary living area.
+          Targeting 4 air changes per hour (ACH) at standard 2.7 m ceiling height. Adjust your room floor area below to compute exact required CADR.
         </p>
+
+        <!-- Interactive Room Sizer -->
+        <div class="p-5 bg-surface rounded-xl border border-border mb-6 space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <label for="purifier-room-slider" class="text-xs uppercase tracking-wider font-semibold text-muted block">
+                Adjust Room Area
+              </label>
+              <div class="flex items-baseline gap-2 mt-0.5">
+                <span id="interactive-room-area" class="text-2xl sm:text-3xl font-serif font-bold text-ink">--</span>
+                <span class="text-sm font-medium text-muted">m² floor area</span>
+              </div>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="text-xs text-muted">Presets:</span>
+              <button type="button" class="preset-pill px-2.5 py-1 text-xs rounded-lg border border-border bg-white text-ink hover:bg-surface font-medium" data-area="12">Small (12 m²)</button>
+              <button type="button" class="preset-pill px-2.5 py-1 text-xs rounded-lg border border-border bg-white text-ink hover:bg-surface font-medium" data-area="20">Bed (20 m²)</button>
+              <button type="button" class="preset-pill px-2.5 py-1 text-xs rounded-lg border border-border bg-white text-ink hover:bg-surface font-medium" data-area="35">Living (35 m²)</button>
+              <button type="button" class="preset-pill px-2.5 py-1 text-xs rounded-lg border border-border bg-white text-ink hover:bg-surface font-medium" data-area="55">Open (55 m²)</button>
+            </div>
+          </div>
+
+          <div>
+            <input type="range" id="purifier-room-slider" min="6" max="75" step="1" value="20" class="w-full accent-primary h-2 bg-gray-200 rounded-lg cursor-pointer">
+            <div class="flex justify-between text-[11px] text-muted mt-1">
+              <span>6 m² (Tiny study)</span>
+              <span>20 m² (Standard bedroom)</span>
+              <span>40 m² (Large hall)</span>
+              <span>75 m² (Expansive space)</span>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2 border-t border-border/60">
+            <div>
+              <span class="text-[11px] uppercase tracking-wide text-muted font-semibold block">Air Volume</span>
+              <span id="interactive-room-vol" class="text-base font-bold text-ink">-- m³</span>
+            </div>
+            <div>
+              <span class="text-[11px] uppercase tracking-wide text-muted font-semibold block">Target Clean Rate</span>
+              <span id="interactive-room-cadr" class="text-base font-bold text-primary">-- m³/h</span>
+            </div>
+            <div>
+              <span class="text-[11px] uppercase tracking-wide text-muted font-semibold block">Imperial Rating</span>
+              <span id="interactive-room-cfm" class="text-base font-bold text-ink">-- CFM</span>
+            </div>
+            <div>
+              <span class="text-[11px] uppercase tracking-wide text-muted font-semibold block">Hardware Class</span>
+              <span id="interactive-room-class" class="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 inline-block mt-0.5">--</span>
+            </div>
+          </div>
+        </div>
+
         <div id="purifier-details-container">
           <!-- Injected via DOM -->
         </div>
@@ -292,6 +372,34 @@
           <p class="text-3xl font-bold font-serif text-ink mt-1">
             <span id="commute-current-kg">--</span> kg CO₂ <span class="text-base font-normal text-muted">per month</span>
           </p>
+        </div>
+
+        <!-- Real-world Impact Equivalencies -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+          <div class="p-4 bg-white rounded-xl border border-border flex items-center gap-3">
+            <span class="text-2xl" aria-hidden="true">🌲</span>
+            <div>
+              <span class="text-xs uppercase tracking-wider font-semibold text-muted block">Tree Offset</span>
+              <span id="equiv-trees" class="text-lg font-bold text-ink">-- trees/mo</span>
+              <span class="text-[11px] text-muted block">to absorb this CO₂</span>
+            </div>
+          </div>
+          <div class="p-4 bg-white rounded-xl border border-border flex items-center gap-3">
+            <span class="text-2xl" aria-hidden="true">⛽</span>
+            <div>
+              <span class="text-xs uppercase tracking-wider font-semibold text-muted block">Fuel Equiv</span>
+              <span id="equiv-fuel" class="text-lg font-bold text-ink">-- L petrol</span>
+              <span class="text-[11px] text-muted block">equivalent burn</span>
+            </div>
+          </div>
+          <div class="p-4 bg-white rounded-xl border border-border flex items-center gap-3">
+            <span class="text-2xl" aria-hidden="true">🚆</span>
+            <div>
+              <span class="text-xs uppercase tracking-wider font-semibold text-muted block">Metro Potential</span>
+              <span id="equiv-metro-save" class="text-lg font-bold text-emerald-700">--% cut</span>
+              <span class="text-[11px] text-muted block">by switching to transit</span>
+            </div>
+          </div>
         </div>
 
         <h3 class="text-lg font-semibold text-ink mb-3">Cleaner travel options</h3>
