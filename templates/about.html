@@ -2,6 +2,10 @@
 
 {% block title %}Saans | Methodology & About{% endblock %}
 
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/about.js') }}?v={{ app_version }}" defer></script>
+{% endblock %}
+
 {% block content %}
 <div class="max-w-[1120px] mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-16 space-y-16">
   <!-- Page Header -->
@@ -84,41 +88,192 @@
     </div>
   </section>
 
-  <!-- SECTION 5: HOW WE GROUP READINGS -->
-  <section class="space-y-4">
-    <h2 class="text-2xl font-serif font-bold text-ink">5. How we group readings (PM2.5 bands)</h2>
-    <p class="text-sm text-muted">
-      Bands use PM2.5 breakpoints based on the Central Pollution Control Board (CPCB) standards and an hourly reading, not the 24-hour average used for official AQI.
-    </p>
-    <div class="table-container saans-card border border-border bg-white">
-      <table class="w-full text-left text-sm border-collapse">
+  <!-- SECTION 5: AQI CHART & CALCULATION METHODOLOGY -->
+  <section class="space-y-6">
+    <div class="space-y-2">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white border border-border text-xs font-semibold text-primary shadow-2xs">
+        <span class="live-pulse" aria-hidden="true"></span>
+        <span>National Air Quality Index (NAQI) Standard</span>
+      </div>
+      <h2 class="text-2xl sm:text-3xl font-serif font-bold text-ink">5. Air Quality Index (AQI) Chart &amp; Calculation</h2>
+      <p class="text-sm sm:text-base text-muted max-w-[70ch] leading-relaxed">
+        Saans uses the official <strong>Central Pollution Control Board (CPCB)</strong> National Air Quality Index (NAQI) framework. While raw particulate concentrations in µg/m³ can be difficult to interpret across pollutants, the standardized 0–500 AQI scale translates complex atmospheric chemistry into direct, actionable health guidance.
+      </p>
+    </div>
+
+    <!-- Visual AQI Spectrum Bar -->
+    <div class="saans-card p-6 bg-white border border-border space-y-4">
+      <div class="flex items-center justify-between">
+        <h3 class="font-bold text-ink text-base">AQI Spectrum &amp; Severity Bands</h3>
+        <span class="text-xs font-mono text-muted">0 to 500+ Scale</span>
+      </div>
+      <div class="spectrum-track h-4 rounded-full"></div>
+      <div class="grid grid-cols-2 sm:grid-cols-6 gap-2 text-center text-xs">
+        <div class="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200">
+          <span class="font-bold text-emerald-800 block">Good</span>
+          <span class="text-emerald-700 font-mono font-medium">0 – 50</span>
+        </div>
+        <div class="p-2.5 rounded-xl bg-lime-50 border border-lime-200">
+          <span class="font-bold text-lime-800 block">Satisfactory</span>
+          <span class="text-lime-700 font-mono font-medium">51 – 100</span>
+        </div>
+        <div class="p-2.5 rounded-xl bg-amber-50 border border-amber-200">
+          <span class="font-bold text-amber-800 block">Moderate</span>
+          <span class="text-amber-700 font-mono font-medium">101 – 200</span>
+        </div>
+        <div class="p-2.5 rounded-xl bg-orange-50 border border-orange-200">
+          <span class="font-bold text-orange-800 block">Poor</span>
+          <span class="text-orange-700 font-mono font-medium">201 – 300</span>
+        </div>
+        <div class="p-2.5 rounded-xl bg-rose-50 border border-rose-200">
+          <span class="font-bold text-rose-800 block">Very Poor</span>
+          <span class="text-rose-700 font-mono font-medium">301 – 400</span>
+        </div>
+        <div class="p-2.5 rounded-xl bg-purple-50 border border-purple-200">
+          <span class="font-bold text-purple-800 block">Severe</span>
+          <span class="text-purple-700 font-mono font-medium">401 – 500+</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Official Breakpoints & Health Implication Table -->
+    <div class="table-container saans-card border border-border bg-white overflow-x-auto shadow-2xs">
+      <table class="w-full text-left text-sm border-collapse min-w-[640px]">
         <thead class="bg-surface border-b border-border">
           <tr>
             <th scope="col" class="py-3 px-4 font-semibold text-ink">Band Label</th>
-            <th scope="col" class="py-3 px-4 font-semibold text-ink">Concentration Range (µg/m³)</th>
-            <th scope="col" class="py-3 px-4 font-semibold text-ink">General Advisory Tier</th>
+            <th scope="col" class="py-3 px-4 font-semibold text-ink">AQI Range</th>
+            <th scope="col" class="py-3 px-4 font-semibold text-ink">PM2.5 Breakpoint (µg/m³)</th>
+            <th scope="col" class="py-3 px-4 font-semibold text-ink">Health Implications &amp; Action Tier</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-border">
-          {% for b in bands %}
           <tr>
-            <td class="py-3.5 px-4 font-medium text-ink">
-              <span class="band-chip band-{{ b.key }}">{{ b.label }}</span>
-            </td>
-            <td class="py-3.5 px-4 text-muted font-medium">
-              {% if b.max is not none %}
-                {{ b.min }} - {{ b.max }}
-              {% else %}
-                &gt; {{ b.min }}
-              {% endif %}
-            </td>
-            <td class="py-3.5 px-4 text-muted capitalize">
-              {{ b.key|replace('_', ' ') }}
-            </td>
+            <td class="py-3.5 px-4 font-medium text-ink"><span class="band-chip band-good">Good</span></td>
+            <td class="py-3.5 px-4 font-mono font-semibold text-ink">0 – 50</td>
+            <td class="py-3.5 px-4 text-muted font-mono font-medium">0 – 30</td>
+            <td class="py-3.5 px-4 text-muted">Minimal health impact. Clean daylight hours for outdoor recreation and natural cross-ventilation.</td>
           </tr>
-          {% endfor %}
+          <tr>
+            <td class="py-3.5 px-4 font-medium text-ink"><span class="band-chip band-satisfactory">Satisfactory</span></td>
+            <td class="py-3.5 px-4 font-mono font-semibold text-ink">51 – 100</td>
+            <td class="py-3.5 px-4 text-muted font-mono font-medium">31 – 60</td>
+            <td class="py-3.5 px-4 text-muted">Minor breathing discomfort to sensitive individuals. General population can carry on normal daily routines.</td>
+          </tr>
+          <tr>
+            <td class="py-3.5 px-4 font-medium text-ink"><span class="band-chip band-moderate">Moderate</span></td>
+            <td class="py-3.5 px-4 font-mono font-semibold text-ink">101 – 200</td>
+            <td class="py-3.5 px-4 text-muted font-mono font-medium">61 – 90</td>
+            <td class="py-3.5 px-4 text-muted">Breathing discomfort to individuals with asthma, heart disease, and children. Windows should remain closed during morning peak inversions.</td>
+          </tr>
+          <tr>
+            <td class="py-3.5 px-4 font-medium text-ink"><span class="band-chip band-poor">Poor</span></td>
+            <td class="py-3.5 px-4 font-mono font-semibold text-ink">201 – 300</td>
+            <td class="py-3.5 px-4 text-muted font-mono font-medium">91 – 120</td>
+            <td class="py-3.5 px-4 text-muted">Breathing discomfort to most people on prolonged exposure. Avoid strenuous outdoor exercise; switch to low-speed indoor air purification.</td>
+          </tr>
+          <tr>
+            <td class="py-3.5 px-4 font-medium text-ink"><span class="band-chip band-very_poor">Very Poor</span></td>
+            <td class="py-3.5 px-4 font-mono font-semibold text-ink">301 – 400</td>
+            <td class="py-3.5 px-4 text-muted font-mono font-medium">121 – 250</td>
+            <td class="py-3.5 px-4 text-muted">Respiratory illness on prolonged exposure. Wear N95/FFP2 masks outdoors; keep windows sealed; run purifiers at boost CADR.</td>
+          </tr>
+          <tr>
+            <td class="py-3.5 px-4 font-medium text-ink"><span class="band-chip band-severe">Severe</span></td>
+            <td class="py-3.5 px-4 font-mono font-semibold text-ink">401 – 500+</td>
+            <td class="py-3.5 px-4 text-muted font-mono font-medium">&gt; 250</td>
+            <td class="py-3.5 px-4 text-muted">Severe health impact affecting healthy people; serious risk for vulnerable groups. Strictly avoid all outdoor exertion and utilize high-grade HEPA filters.</td>
+          </tr>
         </tbody>
       </table>
+    </div>
+
+    <!-- How AQI is Calculated: Scientific Methodology -->
+    <div class="saans-card p-6 sm:p-7 bg-white border border-border space-y-4">
+      <h3 class="text-xl font-serif font-bold text-ink">How AQI is Calculated (CPCB NAQI Formula)</h3>
+      <p class="text-sm text-muted leading-relaxed">
+        The Central Pollution Control Board (CPCB) computes the National Air Quality Index using piecewise <strong>linear interpolation</strong> between discrete concentration breakpoints. The formula maps any raw pollutant concentration \(C\) into an indexed sub-index score \(I\):
+      </p>
+
+      <div class="p-4 rounded-xl bg-surface border border-border font-mono text-xs sm:text-sm text-ink space-y-2">
+        <p class="font-bold text-primary text-sm sm:text-base">
+          AQI = I_low + [ (I_high - I_low) / (C_high - C_low) ] × (C - C_low)
+        </p>
+        <div class="text-xs text-muted space-y-1 pt-1 border-t border-border">
+          <p>• <strong>C</strong>: Raw observed pollutant concentration (PM2.5 in µg/m³).</p>
+          <p>• <strong>C_low, C_high</strong>: Concentration category breakpoints enclosing concentration C.</p>
+          <p>• <strong>I_low, I_high</strong>: Index breakpoints corresponding to C_low and C_high.</p>
+        </div>
+      </div>
+
+      <div class="space-y-2 pt-2">
+        <h4 class="font-bold text-sm text-ink">Step-by-Step Worked Example: Delhi Smog Reading (180 µg/m³)</h4>
+        <p class="text-sm text-muted">
+          Suppose a winter reading reports a PM2.5 concentration of <strong>180 µg/m³</strong>:
+        </p>
+        <ol class="list-decimal list-inside text-xs sm:text-sm text-muted space-y-1.5 bg-surface/50 p-4 rounded-xl border border-border">
+          <li><strong>Identify Breakpoints:</strong> 180 µg/m³ falls inside the <em>Very Poor</em> category: \(C_{\text{low}} = 121\), \(C_{\text{high}} = 250\), with index boundaries \(I_{\text{low}} = 301\) and \(I_{\text{high}} = 400\).</li>
+          <li><strong>Compute Differences:</strong> \((I_{\text{high}} - I_{\text{low}}) = 400 - 301 = 99\), \((C_{\text{high}} - C_{\text{low}}) = 250 - 121 = 129\).</li>
+          <li><strong>Interpolate:</strong> \(\text{AQI} = 301 + \left(\frac{99}{129}\right) \times (180 - 121) = 301 + (0.7674 \times 59) = 301 + 45.28 = \mathbf{346}\).</li>
+          <li><strong>Outcome:</strong> The resulting score is <strong>346 (Very Poor)</strong>, which dictates high-grade HEPA indoor filtration and sealed windows.</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- Interactive Live AQI Calculator Widget -->
+    <div class="saans-card p-6 sm:p-7 bg-surface/80 border border-primary/30 space-y-5">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h3 class="text-lg font-serif font-bold text-ink">Interactive AQI Calculator</h3>
+          <p class="text-xs text-muted">Type any PM2.5 concentration to see the live math and corresponding AQI band.</p>
+        </div>
+        <div class="flex items-center gap-1.5 flex-wrap">
+          <span class="text-xs text-muted font-medium mr-1">Sample readings:</span>
+          <button type="button" class="calc-preset-btn px-2.5 py-1 rounded-full text-xs font-medium bg-white hover:bg-border text-ink transition-colors border border-border" data-pm25="25">25 (Clean)</button>
+          <button type="button" class="calc-preset-btn px-2.5 py-1 rounded-full text-xs font-medium bg-white hover:bg-border text-ink transition-colors border border-border" data-pm25="75">75 (Moderate)</button>
+          <button type="button" class="calc-preset-btn px-2.5 py-1 rounded-full text-xs font-medium bg-white hover:bg-border text-ink transition-colors border border-border" data-pm25="180">180 (Very Poor)</button>
+          <button type="button" class="calc-preset-btn px-2.5 py-1 rounded-full text-xs font-medium bg-white hover:bg-border text-ink transition-colors border border-border" data-pm25="350">350 (Severe)</button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+        <!-- Input control -->
+        <div class="md:col-span-5 space-y-2">
+          <label for="calc-pm25-input" class="block font-semibold text-sm text-ink">
+            PM2.5 Reading (µg/m³)
+          </label>
+          <div class="relative">
+            <input type="number" id="calc-pm25-input" min="0" max="1000" value="180" step="any"
+              class="w-full px-4 py-3 rounded-xl border border-border focus:border-primary focus:ring-1 focus:ring-primary text-ink text-lg font-bold shadow-2xs bg-white">
+            <span class="absolute right-4 top-3.5 text-xs text-muted font-medium">µg/m³</span>
+          </div>
+        </div>
+
+        <!-- Result Box -->
+        <div class="md:col-span-7 p-4 rounded-xl bg-white border border-border shadow-2xs space-y-3">
+          <div class="flex items-center justify-between">
+            <div>
+              <span class="text-xs text-muted uppercase tracking-wider block font-semibold">Calculated NAQI</span>
+              <span id="calc-aqi-value" class="text-3xl font-serif font-bold text-ink">346</span>
+            </div>
+            <div>
+              <span id="calc-band-badge" class="band-chip band-very_poor px-3 py-1 text-sm font-semibold rounded-full">Very Poor</span>
+            </div>
+          </div>
+
+          <!-- Mini pointer spectrum -->
+          <div class="relative pt-1">
+            <div class="spectrum-track h-2.5 rounded-full"></div>
+            <div id="calc-spectrum-pointer" class="spectrum-pointer !w-4 !h-4 !top-[-4px]" style="left: 69%;"></div>
+          </div>
+
+          <!-- Formula Steps display -->
+          <div class="text-xs font-mono bg-surface p-2.5 rounded-lg border border-border text-muted space-y-1">
+            <p id="calc-formula-step" class="text-ink truncate">AQI = 301 + [(400 - 301) / (250 - 121)] × (180.0 - 121)</p>
+            <p id="calc-arithmetic-step" class="text-primary font-semibold truncate">AQI = 301 + (0.77 × 59.0) = 301 + 45 = 346</p>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 

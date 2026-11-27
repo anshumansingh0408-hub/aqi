@@ -6,6 +6,7 @@
 /* global el, loadSession, saveSession, clearSession, announce */
 
 document.addEventListener("DOMContentLoaded", () => {
+  if (initQueryParamHandler()) return;
   initNoticeAndDetails();
   initNotesCounter();
   initExampleButton();
@@ -16,6 +17,44 @@ document.addEventListener("DOMContentLoaded", () => {
   initFormPrefill();
   initFormSubmit();
 });
+
+/**
+ * Handle URL query parameters if form was submitted via standard GET or shared link.
+ * @return {boolean} True if successfully forwarded to plan page.
+ */
+function initQueryParamHandler() {
+  const params = new URLSearchParams(window.location.search);
+  const city = (params.get("city") || "").trim();
+  if (city.length >= 2) {
+    const payload = {
+      city: city,
+      household: {
+        children: Number(params.get("children") || 0),
+        elderly: Number(params.get("elderly") || 0),
+        respiratory: params.get("respiratory") === "on" || params.get("respiratory") === "true",
+        heart: params.get("heart") === "on" || params.get("heart") === "true",
+        pregnant: params.get("pregnant") === "on" || params.get("pregnant") === "true"
+      },
+      lifestyle: {
+        heating: params.get("heating") || "none",
+        cooking: params.get("cooking") || "lpg",
+        has_purifier: params.get("has_purifier") === "on" || params.get("has_purifier") === "true",
+        smokers: params.get("smokers") === "on" || params.get("smokers") === "true",
+        commute_mode: params.get("commute_mode") || "car_petrol",
+        commute_km_one_way: Number(params.get("commute_km_one_way") || 0),
+        commute_days_per_week: Number(params.get("commute_days_per_week") || 0),
+        room_area_sqm: Number(params.get("room_area_sqm") || 20),
+        usual_outdoor_hour: Number(params.get("usual_outdoor_hour") || 8)
+      },
+      manual_pm25: params.get("manual_pm25") ? Number(params.get("manual_pm25")) : null,
+      notes: params.get("notes") || ""
+    };
+    saveSession("saans.inputs", payload);
+    window.location.href = "/plan";
+    return true;
+  }
+  return false;
+}
 
 /**
  * Handle initial notice from failed lookups and query parameter flags.
@@ -50,16 +89,38 @@ function initNotesCounter() {
 }
 
 /**
+ * Attach click listener to the example data button.
+ */
+function initExampleButton() {
+  const btn = document.getElementById("example-btn");
+  if (!btn) return;
+  btn.addEventListener("click", (e) => {
+    e.preventDefault();
+    fillExampleData();
+  });
+}
+
+/**
  * Fill form fields with a realistic example dataset.
  */
 function fillExampleData() {
   const setVal = (id, val) => {
     const field = document.getElementById(id);
-    if (field) field.value = val;
+    if (field) {
+      field.value = val;
+      field.dispatchEvent(new Event("input", { bubbles: true }));
+      field.dispatchEvent(new Event("change", { bubbles: true }));
+      field.removeAttribute("aria-invalid");
+      const err = document.getElementById(`${id}-error`);
+      if (err) err.classList.add("hidden");
+    }
   };
   const setCheck = (id, bool) => {
     const field = document.getElementById(id);
-    if (field) field.checked = bool;
+    if (field) {
+      field.checked = bool;
+      field.dispatchEvent(new Event("change", { bubbles: true }));
+    }
   };
   setVal("city", "Delhi");
   setVal("children", "1");
@@ -88,7 +149,9 @@ function fillExampleData() {
  */
 function initStepperButtons() {
   document.querySelectorAll(".stepper-btn").forEach((btn) => {
-    btn.addEventListener("click", () => {
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
       const targetId = btn.getAttribute("data-target");
       const delta = parseInt(btn.getAttribute("data-delta") || "0", 10);
       const input = document.getElementById(targetId);
@@ -99,6 +162,10 @@ function initStepperButtons() {
       const next = Math.max(min, Math.min(max, current + delta));
       input.value = String(next);
       input.dispatchEvent(new Event("input", { bubbles: true }));
+      input.dispatchEvent(new Event("change", { bubbles: true }));
+      input.removeAttribute("aria-invalid");
+      const err = document.getElementById(`${targetId}-error`);
+      if (err) err.classList.add("hidden");
     });
   });
 }
@@ -108,12 +175,18 @@ function initStepperButtons() {
  */
 function initRoomPresetButtons() {
   document.querySelectorAll(".btn-room-preset").forEach((btn) => {
-    btn.addEventListener("click", () => {
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
       const sqm = btn.getAttribute("data-sqm");
       const input = document.getElementById("room_area_sqm");
       if (input && sqm) {
         input.value = sqm;
         input.dispatchEvent(new Event("input", { bubbles: true }));
+        input.dispatchEvent(new Event("change", { bubbles: true }));
+        input.removeAttribute("aria-invalid");
+        const roomErr = document.getElementById("room-error");
+        if (roomErr) roomErr.classList.add("hidden");
       }
     });
   });
@@ -175,12 +248,18 @@ function initQuickCityButtons() {
   const cityInput = document.getElementById("city");
   const chips = document.querySelectorAll(".btn-quick-city");
   chips.forEach((btn) => {
-    btn.addEventListener("click", () => {
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
       if (cityInput) {
         const cityName = btn.getAttribute("data-city") || "";
         cityInput.value = cityName;
         updateCityChipStates(cityName);
-        cityInput.focus();
+        cityInput.dispatchEvent(new Event("input", { bubbles: true }));
+        cityInput.dispatchEvent(new Event("change", { bubbles: true }));
+        cityInput.removeAttribute("aria-invalid");
+        const cityErr = document.getElementById("city-error");
+        if (cityErr) cityErr.classList.add("hidden");
       }
     });
   });
@@ -362,26 +441,37 @@ function buildPayloadFromForm() {
 }
 
 /**
- * Attach submit event handler to form.
+ * Attach submit and click event handlers to form.
  */
 function initFormSubmit() {
   const form = document.getElementById("plan-form");
+  const submitBtn = document.getElementById("submit-btn");
   if (!form) return;
-  form.addEventListener("submit", e => {
-    e.preventDefault();
+
+  const handleSubmit = (e) => {
+    if (e) e.preventDefault();
     const errors = validateClientInputs();
     if (errors.length > 0) {
       showErrorSummary(errors);
       return;
     }
     hideErrorSummary();
-    const submitBtn = document.getElementById("submit-btn");
     if (submitBtn) {
       submitBtn.setAttribute("disabled", "true");
-      submitBtn.textContent = "Building plan...";
+      const labelSpan = submitBtn.querySelector("span");
+      if (labelSpan) {
+        labelSpan.textContent = "Building plan...";
+      } else {
+        submitBtn.textContent = "Building plan...";
+      }
     }
     const payload = buildPayloadFromForm();
     saveSession("saans.inputs", payload);
     window.location.href = "/plan";
-  });
+  };
+
+  form.addEventListener("submit", handleSubmit);
+  if (submitBtn) {
+    submitBtn.addEventListener("click", handleSubmit);
+  }
 }

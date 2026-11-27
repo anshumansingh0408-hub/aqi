@@ -42,7 +42,25 @@
 </head>
 
 <body
-  class="bg-[#F8FAFA] text-ink font-sans flex flex-col min-h-screen selection:bg-primary-light selection:text-primary-dark">
+  class="bg-[#F8FAFA] text-ink font-sans flex flex-col min-h-screen selection:bg-primary-light selection:text-primary-dark relative">
+  <!-- Atmospheric Canvas & Ambient Living Air Background -->
+  <div class="atmospheric-canvas" aria-hidden="true">
+    <div class="atmospheric-orb orb-teal"></div>
+    <div class="atmospheric-orb orb-sky"></div>
+    <div class="atmospheric-orb orb-emerald"></div>
+    <div class="atmospheric-orb orb-amber"></div>
+    <div class="air-current air-current-1"></div>
+    <div class="air-current air-current-2"></div>
+    <div class="particle p1"></div>
+    <div class="particle p2"></div>
+    <div class="particle p3"></div>
+    <div class="particle p4"></div>
+    <div class="particle p5"></div>
+    <div class="particle p6"></div>
+    <div class="particle p7"></div>
+    <div class="particle p8"></div>
+  </div>
+
   <a href="#main-content" class="skip-link">Skip to main content</a>
 
   <header class="border-b border-border bg-white/95 backdrop-blur-md sticky top-0 z-40 transition-shadow">
@@ -82,7 +100,7 @@
     </div>
   </header>
 
-  <main id="main-content" tabindex="-1" class="flex-grow focus:outline-none">
+  <main id="main-content" tabindex="-1" class="flex-grow focus:outline-none relative z-10">
     <div id="live-status" aria-live="polite" class="sr-only"></div>
     {% block content %}{% endblock %}
   </main>

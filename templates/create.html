@@ -7,7 +7,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="py-10 md:py-16 bg-[#F8FAFA]">
+<div class="py-10 md:py-16 bg-transparent">
   <div class="max-w-[1120px] mx-auto px-4 sm:px-6 lg:px-8">
     <!-- Header -->
     <div class="max-w-[65ch] space-y-3 mb-8">
@@ -62,7 +62,7 @@
       </div>
     </div>
 
-    <form id="plan-form" novalidate class="max-w-[760px] space-y-8">
+    <form id="plan-form" action="javascript:void(0);" novalidate class="max-w-[760px] space-y-8">
       <!-- 1. Where are you? -->
       <fieldset class="saans-card p-6 sm:p-7 space-y-4">
         <div class="flex items-center gap-3 mb-2">
@@ -336,14 +336,14 @@
       <!-- Buttons -->
       <div class="flex flex-col sm:flex-row gap-4 pt-2">
         <button type="submit" id="submit-btn"
-          class="bg-primary hover:bg-primary-dark active:scale-[0.98] text-white font-medium px-8 py-3.5 rounded-xl transition-all shadow-xs hover:shadow min-h-[48px] flex items-center justify-center gap-2">
+          class="bg-primary hover:bg-primary-dark active:scale-[0.98] text-white font-medium px-8 py-3.5 rounded-xl transition-all shadow-xs hover:shadow min-h-[48px] flex items-center justify-center gap-2 cursor-pointer">
           <span>Build my plan</span>
           <svg class="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
           </svg>
         </button>
         <button type="button" id="example-btn"
-          class="border border-primary text-primary hover:bg-surface font-medium px-6 py-3.5 rounded-xl transition-colors min-h-[48px] flex items-center justify-center">
+          class="border border-primary text-primary hover:bg-surface font-medium px-6 py-3.5 rounded-xl transition-colors min-h-[48px] flex items-center justify-center cursor-pointer">
           Fill with an example
         </button>
       </div>

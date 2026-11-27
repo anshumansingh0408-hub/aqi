@@ -10,7 +10,9 @@
 <div class="max-w-[1120px] mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 animate-fade-in">
   <!-- Loading state -->
   <div id="plan-loading" class="text-center py-20">
-    <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent mb-4 shadow-xs" aria-hidden="true"></div>
+    <div
+      class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent mb-4 shadow-xs"
+      aria-hidden="true"></div>
     <h1 class="text-2xl font-serif font-bold text-ink mb-2">Building your air quality plan...</h1>
     <p class="text-muted">Fetching air quality data and synthesizing recommendations.</p>
   </div>
@@ -20,7 +22,8 @@
     <h2 class="text-lg font-bold text-red-900 mb-2">Unable to load air plan</h2>
     <p id="plan-error-message" class="text-red-800 mb-4"></p>
     <div class="flex flex-wrap gap-4">
-      <button type="button" id="btn-plan-retry" class="hidden bg-primary text-white font-medium px-5 py-2.5 rounded-xl hover:bg-primary-dark transition-colors">
+      <button type="button" id="btn-plan-retry"
+        class="hidden bg-primary text-white font-medium px-5 py-2.5 rounded-xl hover:bg-primary-dark transition-colors">
         Try again
       </button>
       <a href="/create" class="inline-flex items-center text-primary font-medium hover:underline">
@@ -41,19 +44,24 @@
           <p id="plan-location-meta" class="text-muted text-sm mt-1"></p>
         </div>
         <div class="flex flex-wrap items-center gap-3 no-print">
-          <a href="/create" id="btn-edit-details" class="border border-border bg-white hover:bg-surface text-ink px-4 py-2 rounded-xl text-sm font-medium transition-colors flex items-center min-h-[44px]">
+          <a href="/create" id="btn-edit-details"
+            class="border border-border bg-white hover:bg-surface text-ink px-4 py-2 rounded-xl text-sm font-medium transition-colors flex items-center min-h-[44px]">
             Edit details
           </a>
-          <button type="button" id="btn-refresh-reading" class="border border-border bg-white hover:bg-surface text-ink px-4 py-2 rounded-xl text-sm font-medium transition-colors flex items-center min-h-[44px]">
+          <button type="button" id="btn-refresh-reading"
+            class="border border-border bg-white hover:bg-surface text-ink px-4 py-2 rounded-xl text-sm font-medium transition-colors flex items-center min-h-[44px]">
             Refresh reading
           </button>
-          <button type="button" id="btn-share-plan" class="border border-border bg-white hover:bg-surface text-ink px-4 py-2 rounded-xl text-sm font-medium transition-colors flex items-center gap-2 min-h-[44px]">
+          <button type="button" id="btn-share-plan"
+            class="border border-border bg-white hover:bg-surface text-ink px-4 py-2 rounded-xl text-sm font-medium transition-colors flex items-center gap-2 min-h-[44px]">
             <svg class="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
             </svg>
             <span>Share summary</span>
           </button>
-          <button type="button" id="btn-print-plan" class="bg-primary hover:bg-primary-dark text-white px-5 py-2 rounded-xl text-sm font-medium transition-colors flex items-center min-h-[44px] shadow-xs">
+          <button type="button" id="btn-print-plan"
+            class="bg-primary hover:bg-primary-dark text-white px-5 py-2 rounded-xl text-sm font-medium transition-colors flex items-center min-h-[44px] shadow-xs">
             Print or save as PDF
           </button>
         </div>
@@ -65,7 +73,8 @@
       </div>
 
       <!-- Source notification box -->
-      <div id="plan-source-box" class="mt-4 p-4 bg-surface rounded-xl border border-border text-sm text-muted flex items-center gap-3">
+      <div id="plan-source-box"
+        class="mt-4 p-4 bg-surface rounded-xl border border-border text-sm text-muted flex items-center gap-3">
         <span class="live-pulse flex-shrink-0" aria-hidden="true"></span>
         <p id="plan-source-text" class="flex-grow"></p>
       </div>
@@ -79,31 +88,38 @@
 
     <!-- Tab navigation -->
     <div role="tablist" aria-label="Air quality plan sections" class="border-b border-border flex flex-wrap gap-2">
-      <button role="tab" id="tab-today" aria-controls="tabpanel-today" aria-selected="true" tabindex="0" class="tab-button py-3 px-5 text-base font-semibold border-b-2 border-primary text-primary hover:text-primary-dark">
+      <button role="tab" id="tab-today" aria-controls="tabpanel-today" aria-selected="true" tabindex="0"
+        class="tab-button py-3 px-5 text-base font-semibold border-b-2 border-primary text-primary hover:text-primary-dark">
         Today
       </button>
-      <button role="tab" id="tab-indoors" aria-controls="tabpanel-indoors" aria-selected="false" tabindex="-1" class="tab-button py-3 px-5 text-base font-semibold border-b-2 border-transparent text-muted hover:text-ink hover:border-border">
+      <button role="tab" id="tab-indoors" aria-controls="tabpanel-indoors" aria-selected="false" tabindex="-1"
+        class="tab-button py-3 px-5 text-base font-semibold border-b-2 border-transparent text-muted hover:text-ink hover:border-border">
         Indoors
       </button>
-      <button role="tab" id="tab-commute" aria-controls="tabpanel-commute" aria-selected="false" tabindex="-1" class="tab-button py-3 px-5 text-base font-semibold border-b-2 border-transparent text-muted hover:text-ink hover:border-border">
+      <button role="tab" id="tab-commute" aria-controls="tabpanel-commute" aria-selected="false" tabindex="-1"
+        class="tab-button py-3 px-5 text-base font-semibold border-b-2 border-transparent text-muted hover:text-ink hover:border-border">
         Commute
       </button>
-      <button role="tab" id="tab-explain" aria-controls="tabpanel-explain" aria-selected="false" tabindex="-1" class="tab-button py-3 px-5 text-base font-semibold border-b-2 border-transparent text-muted hover:text-ink hover:border-border">
+      <button role="tab" id="tab-explain" aria-controls="tabpanel-explain" aria-selected="false" tabindex="-1"
+        class="tab-button py-3 px-5 text-base font-semibold border-b-2 border-transparent text-muted hover:text-ink hover:border-border">
         Explain
       </button>
-      <button role="tab" id="tab-ask" aria-controls="tabpanel-ask" aria-selected="false" tabindex="-1" class="tab-button py-3 px-5 text-base font-semibold border-b-2 border-transparent text-muted hover:text-ink hover:border-border">
+      <button role="tab" id="tab-ask" aria-controls="tabpanel-ask" aria-selected="false" tabindex="-1"
+        class="tab-button py-3 px-5 text-base font-semibold border-b-2 border-transparent text-muted hover:text-ink hover:border-border">
         Ask
       </button>
     </div>
 
     <!-- TAB 1: TODAY -->
-    <div role="tabpanel" id="tabpanel-today" aria-labelledby="tab-today" tabindex="0" class="space-y-8 focus:outline-none">
+    <div role="tabpanel" id="tabpanel-today" aria-labelledby="tab-today" tabindex="0"
+      class="space-y-8 focus:outline-none">
       <!-- Visual Air Quality Gauge Card (IQAir / BreezoMeter inspired) -->
       <div id="plan-gauge-card" class="saans-card p-6 border border-border space-y-4">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div class="flex items-center gap-3">
             <div>
-              <span class="text-xs uppercase tracking-wider font-semibold text-muted block">Live Air Quality Index (AQI)</span>
+              <span class="text-xs uppercase tracking-wider font-semibold text-muted block">Live Air Quality Index
+                (AQI)</span>
               <div class="flex items-baseline gap-2 mt-0.5">
                 <span id="plan-gauge-val" class="text-3xl sm:text-4xl font-serif font-bold text-ink">--</span>
                 <span class="text-sm font-semibold text-muted">AQI</span>
@@ -139,7 +155,8 @@
           <div class="flex items-center justify-between">
             <span class="text-xs uppercase tracking-wider font-semibold text-muted flex items-center gap-1.5">
               <svg class="w-4 h-4 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 00-9.78 2.096A4.001 4.001 0 003 15z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 00-9.78 2.096A4.001 4.001 0 003 15z" />
               </svg>
               <span>Outdoor Environment</span>
             </span>
@@ -161,19 +178,23 @@
         <div class="saans-card p-5 border border-border bg-white space-y-3">
           <div class="flex items-center justify-between">
             <span class="text-xs uppercase tracking-wider font-semibold text-muted flex items-center gap-1.5">
-              <svg class="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+              <svg class="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
               </svg>
               <span>Indoor Protection Target</span>
             </span>
-            <span class="text-xs font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-full">4 ACH Target</span>
+            <span class="text-xs font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-full">4 ACH
+              Target</span>
           </div>
           <div class="flex items-baseline justify-between pt-1">
             <div>
               <span class="text-2xl font-bold font-serif text-ink" id="dual-indoor-cadr">--</span>
               <span class="text-xs font-medium text-muted ml-0.5">m³/h min CADR</span>
             </div>
-            <span id="dual-indoor-window" class="text-xs font-semibold text-ink px-2.5 py-1 rounded-full bg-surface">--</span>
+            <span id="dual-indoor-window"
+              class="text-xs font-semibold text-ink px-2.5 py-1 rounded-full bg-surface">--</span>
           </div>
           <p id="dual-indoor-desc" class="text-xs text-muted pt-1 border-t border-border">
             Sized for your room volume
@@ -252,8 +273,10 @@
             </p>
           </div>
           <div class="flex items-center gap-3 text-xs text-muted" id="chart-legend-badge">
-            <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>Cleanest Window</span>
-            <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-primary"></span>Model Trend</span>
+            <span class="inline-flex items-center gap-1.5"><span
+                class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>Cleanest Window</span>
+            <span class="inline-flex items-center gap-1.5"><span
+                class="w-2.5 h-2.5 rounded-full bg-primary"></span>Model Trend</span>
           </div>
         </div>
 
@@ -282,7 +305,8 @@
     </div>
 
     <!-- TAB 2: INDOORS -->
-    <div role="tabpanel" id="tabpanel-indoors" aria-labelledby="tab-indoors" tabindex="0" class="space-y-8 focus:outline-none" hidden>
+    <div role="tabpanel" id="tabpanel-indoors" aria-labelledby="tab-indoors" tabindex="0"
+      class="space-y-8 focus:outline-none" hidden>
       <!-- Indoor checklist -->
       <section aria-labelledby="indoor-checklist-heading" class="saans-card p-6">
         <h2 id="indoor-checklist-heading" class="text-xl font-serif font-bold text-ink mb-2">
@@ -302,7 +326,8 @@
           Air purifier sizing guide & calculator
         </h2>
         <p class="text-sm text-muted mb-4">
-          Targeting 4 air changes per hour (ACH) at standard 2.7 m ceiling height. Adjust your room floor area below to compute exact required CADR.
+          Targeting 4 air changes per hour (ACH) at standard 2.7 m ceiling height. Adjust your room floor area below to
+          compute exact required CADR.
         </p>
 
         <!-- Interactive Room Sizer -->
@@ -319,15 +344,24 @@
             </div>
             <div class="flex flex-wrap items-center gap-2">
               <span class="text-xs text-muted">Presets:</span>
-              <button type="button" class="preset-pill px-2.5 py-1 text-xs rounded-lg border border-border bg-white text-ink hover:bg-surface font-medium" data-area="12">Small (12 m²)</button>
-              <button type="button" class="preset-pill px-2.5 py-1 text-xs rounded-lg border border-border bg-white text-ink hover:bg-surface font-medium" data-area="20">Bed (20 m²)</button>
-              <button type="button" class="preset-pill px-2.5 py-1 text-xs rounded-lg border border-border bg-white text-ink hover:bg-surface font-medium" data-area="35">Living (35 m²)</button>
-              <button type="button" class="preset-pill px-2.5 py-1 text-xs rounded-lg border border-border bg-white text-ink hover:bg-surface font-medium" data-area="55">Open (55 m²)</button>
+              <button type="button"
+                class="preset-pill px-2.5 py-1 text-xs rounded-lg border border-border bg-white text-ink hover:bg-surface font-medium"
+                data-area="12">Small (12 m²)</button>
+              <button type="button"
+                class="preset-pill px-2.5 py-1 text-xs rounded-lg border border-border bg-white text-ink hover:bg-surface font-medium"
+                data-area="20">Bed (20 m²)</button>
+              <button type="button"
+                class="preset-pill px-2.5 py-1 text-xs rounded-lg border border-border bg-white text-ink hover:bg-surface font-medium"
+                data-area="35">Living (35 m²)</button>
+              <button type="button"
+                class="preset-pill px-2.5 py-1 text-xs rounded-lg border border-border bg-white text-ink hover:bg-surface font-medium"
+                data-area="55">Open (55 m²)</button>
             </div>
           </div>
 
           <div>
-            <input type="range" id="purifier-room-slider" min="6" max="75" step="1" value="20" class="w-full accent-primary h-2 bg-gray-200 rounded-lg cursor-pointer">
+            <input type="range" id="purifier-room-slider" min="6" max="75" step="1" value="20"
+              class="w-full accent-primary h-2 bg-gray-200 rounded-lg cursor-pointer">
             <div class="flex justify-between text-[11px] text-muted mt-1">
               <span>6 m² (Tiny study)</span>
               <span>20 m² (Standard bedroom)</span>
@@ -351,7 +385,8 @@
             </div>
             <div>
               <span class="text-[11px] uppercase tracking-wide text-muted font-semibold block">Hardware Class</span>
-              <span id="interactive-room-class" class="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 inline-block mt-0.5">--</span>
+              <span id="interactive-room-class"
+                class="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 inline-block mt-0.5">--</span>
             </div>
           </div>
         </div>
@@ -363,16 +398,19 @@
     </div>
 
     <!-- TAB 3: COMMUTE -->
-    <div role="tabpanel" id="tabpanel-commute" aria-labelledby="tab-commute" tabindex="0" class="space-y-8 focus:outline-none" hidden>
+    <div role="tabpanel" id="tabpanel-commute" aria-labelledby="tab-commute" tabindex="0"
+      class="space-y-8 focus:outline-none" hidden>
       <!-- Current emissions and alternatives -->
       <section aria-labelledby="commute-overview-heading" class="saans-card p-6">
         <h2 id="commute-overview-heading" class="text-xl font-serif font-bold text-ink mb-2">
           Commute impact & cleaner alternatives
         </h2>
         <div class="mb-6 p-5 bg-gradient-to-r from-surface to-white rounded-xl border border-border">
-          <span class="text-xs uppercase tracking-wider font-semibold text-muted">Estimated Current Monthly Footprint</span>
+          <span class="text-xs uppercase tracking-wider font-semibold text-muted">Estimated Current Monthly
+            Footprint</span>
           <p class="text-3xl font-bold font-serif text-ink mt-1">
-            <span id="commute-current-kg">--</span> kg CO₂ <span class="text-base font-normal text-muted">per month</span>
+            <span id="commute-current-kg">--</span> kg CO₂ <span class="text-base font-normal text-muted">per
+              month</span>
           </p>
         </div>
 
@@ -431,31 +469,38 @@
     </div>
 
     <!-- TAB 4: EXPLAIN -->
-    <div role="tabpanel" id="tabpanel-explain" aria-labelledby="tab-explain" tabindex="0" class="space-y-6 focus:outline-none" hidden>
+    <div role="tabpanel" id="tabpanel-explain" aria-labelledby="tab-explain" tabindex="0"
+      class="space-y-6 focus:outline-none" hidden>
       <section class="saans-card p-6">
         <h2 class="text-xl font-serif font-bold text-ink mb-2">
           Plain-language explanation
         </h2>
         <p class="text-sm text-muted mb-6">
-          {{ ai_name }} synthesizes the computed rules and your household profile into a conversational guide. Numbers are strictly grounded in your plan.
+          {{ ai_name }} synthesizes the computed rules and your household profile into a conversational guide. Numbers
+          are strictly grounded in your plan.
         </p>
-        <button type="button" id="btn-explain" class="bg-primary hover:bg-primary-dark text-white font-medium px-6 py-2.5 rounded-xl transition-colors flex items-center min-h-[44px] shadow-xs">
+        <button type="button" id="btn-explain"
+          class="bg-primary hover:bg-primary-dark text-white font-medium px-6 py-2.5 rounded-xl transition-colors flex items-center min-h-[44px] shadow-xs">
           Explain my plan in plain words
         </button>
 
         <!-- Loading spinner for explanation -->
         <div id="explain-loading" class="hidden mt-6 text-center py-8">
-          <div class="inline-block animate-spin rounded-full h-8 w-8 border-3 border-primary border-t-transparent mb-2" aria-hidden="true"></div>
+          <div class="inline-block animate-spin rounded-full h-8 w-8 border-3 border-primary border-t-transparent mb-2"
+            aria-hidden="true"></div>
           <p class="text-sm text-muted">Generating grounded plain-language explanation...</p>
         </div>
 
         <!-- Explain output container -->
         <div id="explain-output" class="hidden mt-6 space-y-6">
           <!-- Fallback or grounding notices -->
-          <div id="explain-fallback-alert" class="hidden p-4 rounded-xl bg-surface border border-border text-sm text-muted">
-            <p><strong>Note:</strong> {{ ai_name }} was temporarily unavailable. This explanation was compiled directly from the rule engine output.</p>
+          <div id="explain-fallback-alert"
+            class="hidden p-4 rounded-xl bg-surface border border-border text-sm text-muted">
+            <p><strong>Note:</strong> {{ ai_name }} was temporarily unavailable. This explanation was compiled directly
+              from the rule engine output.</p>
           </div>
-          <div id="explain-grounding-alert" class="hidden p-4 rounded-xl bg-surface border border-border text-sm text-muted">
+          <div id="explain-grounding-alert"
+            class="hidden p-4 rounded-xl bg-surface border border-border text-sm text-muted">
             <p id="explain-grounding-text"></p>
           </div>
 
@@ -504,7 +549,8 @@
     </div>
 
     <!-- TAB 5: ASK -->
-    <div role="tabpanel" id="tabpanel-ask" aria-labelledby="tab-ask" tabindex="0" class="space-y-6 focus:outline-none" hidden>
+    <div role="tabpanel" id="tabpanel-ask" aria-labelledby="tab-ask" tabindex="0" class="space-y-6 focus:outline-none"
+      hidden>
       <section class="saans-card p-6">
         <h2 class="text-xl font-serif font-bold text-ink mb-2">
           Ask a question about your plan
@@ -517,13 +563,16 @@
         <div class="mb-4">
           <span class="text-xs font-semibold text-muted block mb-2">Example questions:</span>
           <div class="flex flex-wrap gap-2">
-            <button type="button" class="btn-sample-q text-xs bg-surface hover:bg-border text-ink px-3.5 py-1.5 rounded-full border border-border transition-all duration-150 hover:-translate-y-0.5 min-h-[36px]">
+            <button type="button"
+              class="btn-sample-q text-xs bg-surface hover:bg-border text-ink px-3.5 py-1.5 rounded-full border border-border transition-all duration-150 hover:-translate-y-0.5 min-h-[36px]">
               Can children play outside today?
             </button>
-            <button type="button" class="btn-sample-q text-xs bg-surface hover:bg-border text-ink px-3.5 py-1.5 rounded-full border border-border transition-all duration-150 hover:-translate-y-0.5 min-h-[36px]">
+            <button type="button"
+              class="btn-sample-q text-xs bg-surface hover:bg-border text-ink px-3.5 py-1.5 rounded-full border border-border transition-all duration-150 hover:-translate-y-0.5 min-h-[36px]">
               When is the best time to ventilate the house?
             </button>
-            <button type="button" class="btn-sample-q text-xs bg-surface hover:bg-border text-ink px-3.5 py-1.5 rounded-full border border-border transition-all duration-150 hover:-translate-y-0.5 min-h-[36px]">
+            <button type="button"
+              class="btn-sample-q text-xs bg-surface hover:bg-border text-ink px-3.5 py-1.5 rounded-full border border-border transition-all duration-150 hover:-translate-y-0.5 min-h-[36px]">
               Should I wear a mask for outdoor errands?
             </button>
           </div>
@@ -533,7 +582,9 @@
         <form id="ask-form" class="space-y-4">
           <div>
             <label for="ask-input" class="sr-only">Your question</label>
-            <textarea id="ask-input" rows="3" maxlength="300" placeholder="Type your question here (max 300 characters)..." class="w-full px-4 py-3 rounded-xl border border-border focus:ring-1 focus:ring-primary focus:border-primary text-sm"></textarea>
+            <textarea id="ask-input" rows="3" maxlength="300"
+              placeholder="Type your question here (max 300 characters)..."
+              class="w-full px-4 py-3 rounded-xl border border-border focus:ring-1 focus:ring-primary focus:border-primary text-sm"></textarea>
             <div class="flex justify-between items-center text-xs text-muted mt-1">
               <span>Grounding check applies to all answers</span>
               <span id="ask-char-count">0/300</span>
@@ -541,11 +592,13 @@
           </div>
 
           <div class="flex items-center gap-4">
-            <button type="submit" id="btn-ask" class="bg-primary hover:bg-primary-dark text-white font-medium px-6 py-2.5 rounded-xl transition-colors flex items-center min-h-[44px] shadow-xs">
+            <button type="submit" id="btn-ask"
+              class="bg-primary hover:bg-primary-dark text-white font-medium px-6 py-2.5 rounded-xl transition-colors flex items-center min-h-[44px] shadow-xs">
               Ask question
             </button>
             <span id="ask-spinner" class="hidden text-sm text-muted flex items-center gap-2">
-              <span class="inline-block animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent" aria-hidden="true"></span>
+              <span class="inline-block animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent"
+                aria-hidden="true"></span>
               Checking plan...
             </span>
           </div>

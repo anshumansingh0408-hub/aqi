@@ -34,7 +34,7 @@ app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1)
 Compress(app)
 app.config["MAX_CONTENT_LENGTH"] = 32 * 1024
 
-APP_VERSION = "1.0.0"
+APP_VERSION = "1.0.2"
 
 APP_CONFIG: dict[str, int] = {
     "RATE_LIMIT_GENERAL": 30,
@@ -127,7 +127,7 @@ def prune_tracker(tracker: dict[str, list[float]], window: int) -> None:
 
     Args:
         tracker: Dictionary mapping IP to timestamp arrays.
-        window: Sliding window duration in seconds.
+        window: Sliding window duration in seconds.33
     """
     if len(tracker) <= APP_CONFIG["TRACKER_MAX_IPS"]:
         return
