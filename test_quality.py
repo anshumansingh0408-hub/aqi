@@ -40,7 +40,7 @@ class TestQuality(unittest.TestCase):
         self.assertEqual(missing, [], f"Missing module docstrings in: {missing}")
 
     def test_no_aiza_keys(self) -> None:
-        """Verify no source file contains a hardcoded API key starting with 'AIza'."""
+        """Verify no source file contains hardcoded API keys starting with 'AIza' or 'gsk_'."""
         violations: list[str] = []
         for fname in self.target_files:
             fpath = os.path.join(self.base_dir, fname)
@@ -49,9 +49,9 @@ class TestQuality(unittest.TestCase):
             with open(fpath, "r", encoding="utf-8") as f:
                 content = f.read()
             for line_idx, line in enumerate(content.splitlines(), start=1):
-                if "AIza" in line:
+                if "AIza" in line or "gsk_" in line:
                     violations.append(f"{fname}:{line_idx}")
-        self.assertEqual(violations, [], f"Hardcoded AIza keys found in: {violations}")
+        self.assertEqual(violations, [], f"Hardcoded keys found in: {violations}")
 
     def test_function_quality_gate(self) -> None:
         """Verify docstring, typed parameters, return annotation, and body length <= 30."""
