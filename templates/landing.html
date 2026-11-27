@@ -84,28 +84,29 @@
             </button>
           </div>
 
-          <!-- PM2.5 metric & spectrum visualizer -->
+          <!-- AQI metric & spectrum visualizer -->
           <div class="space-y-3 pt-1">
             <div class="flex items-baseline justify-between">
               <div>
-                <span class="text-4xl font-serif font-bold text-ink" id="example-pm25-val">180.0</span>
-                <span class="text-sm font-medium text-muted ml-1">µg/m³ PM2.5</span>
+                <span class="text-4xl font-serif font-bold text-ink" id="example-pm25-val">346</span>
+                <span class="text-sm font-semibold text-muted ml-1">AQI</span>
               </div>
-              <span class="text-xs font-medium text-muted">CPCB Standard Band</span>
+              <span id="example-pm25-sub" class="text-xs font-medium text-muted">180.0 µg/m³ PM2.5</span>
             </div>
 
             <!-- Visual spectrum track (Apple Weather capsule) -->
             <div>
-              <div class="spectrum-track" role="meter" aria-label="PM2.5 Spectrum" aria-valuenow="180" aria-valuemin="0"
-                aria-valuemax="300">
-                <div class="spectrum-pointer" id="example-spectrum-pointer" style="left: 68%;"></div>
+              <div class="spectrum-track" role="meter" aria-label="Air Quality Index Spectrum" aria-valuenow="346" aria-valuemin="0"
+                aria-valuemax="500">
+                <div class="spectrum-pointer" id="example-spectrum-pointer" style="left: 69%;"></div>
               </div>
               <div class="flex justify-between text-[10px] text-muted font-medium mt-1.5 px-0.5">
                 <span>0 Good</span>
-                <span>60 Sat</span>
-                <span>90 Mod</span>
-                <span>120 Poor</span>
-                <span>250+ Sev</span>
+                <span>51 Sat</span>
+                <span>101 Mod</span>
+                <span>201 Poor</span>
+                <span>301 V.Poor</span>
+                <span>401+ Sev</span>
               </div>
             </div>
           </div>

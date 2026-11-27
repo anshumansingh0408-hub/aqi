@@ -6,6 +6,16 @@
 
 /* global api, loadSession, saveSession, formatHour, BAND_CLASSES */
 
+function pm25ToAqi(pm25) {
+  if (typeof pm25 !== "number" || isNaN(pm25) || pm25 < 0) return 0;
+  if (pm25 <= 30) return Math.round((50 / 30) * pm25);
+  if (pm25 <= 60) return Math.round(50 + (50 / 30) * (pm25 - 30));
+  if (pm25 <= 90) return Math.round(100 + (100 / 30) * (pm25 - 60));
+  if (pm25 <= 120) return Math.round(200 + (100 / 30) * (pm25 - 90));
+  if (pm25 <= 250) return Math.round(300 + (100 / 130) * (pm25 - 120));
+  return Math.min(500, Math.round(400 + (100 / 130) * (pm25 - 250)));
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
   const cardEl = document.getElementById("landing-example-card");
   if (!cardEl) return;
@@ -34,8 +44,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       const nameEl = document.getElementById("example-city-name");
       if (nameEl) nameEl.textContent = cityName;
 
+      const aqi = pm25ToAqi(pm25);
       const pm25El = document.getElementById("example-pm25-val");
-      if (pm25El) pm25El.textContent = pm25.toFixed(1);
+      if (pm25El) pm25El.textContent = String(aqi);
+
+      const subEl = document.getElementById("example-pm25-sub");
+      if (subEl) subEl.textContent = `${pm25.toFixed(1)} µg/m³ PM2.5`;
 
       const bandChip = document.getElementById("example-band-chip");
       if (bandChip) {
@@ -51,7 +65,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       const pointerEl = document.getElementById("example-spectrum-pointer");
       if (pointerEl) {
-        const pct = Math.min(Math.max((pm25 / 300) * 100, 3), 97);
+        const pct = Math.min(Math.max((aqi / 500) * 100, 3), 97);
         pointerEl.style.left = `${pct}%`;
       }
     });
@@ -101,11 +115,15 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const pm25El = document.getElementById("example-pm25-val");
   if (pm25El && typeof reading.pm25 === "number") {
-    pm25El.textContent = reading.pm25.toFixed(1);
+    const aqi = advice.air?.aqi ?? pm25ToAqi(reading.pm25);
+    pm25El.textContent = String(aqi);
+
+    const subEl = document.getElementById("example-pm25-sub");
+    if (subEl) subEl.textContent = `${reading.pm25.toFixed(1)} µg/m³ PM2.5`;
 
     const pointerEl = document.getElementById("example-spectrum-pointer");
     if (pointerEl) {
-      const pct = Math.min(Math.max((reading.pm25 / 300) * 100, 3), 97);
+      const pct = Math.min(Math.max((aqi / 500) * 100, 3), 97);
       pointerEl.style.left = `${pct}%`;
     }
   }
