@@ -10,6 +10,9 @@ document.addEventListener("DOMContentLoaded", () => {
   initNotesCounter();
   initExampleButton();
   initQuickCityButtons();
+  initStepperButtons();
+  initRoomPresetButtons();
+  initToggleCards();
   initFormPrefill();
   initFormSubmit();
 });
@@ -76,31 +79,113 @@ function fillExampleData() {
   setVal("manual_pm25", "");
   setVal("notes", "");
   hideErrorSummary();
+  updateCityChipStates("Delhi");
+  syncAllToggleCards();
 }
 
 /**
- * Wire example button click.
+ * Wire stepper buttons to increment or decrement numeric inputs.
  */
-function initExampleButton() {
-  const btn = document.getElementById("example-btn");
-  if (btn) {
-    btn.addEventListener("click", fillExampleData);
-  }
+function initStepperButtons() {
+  document.querySelectorAll(".stepper-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const targetId = btn.getAttribute("data-target");
+      const delta = parseInt(btn.getAttribute("data-delta") || "0", 10);
+      const input = document.getElementById(targetId);
+      if (!input) return;
+      const current = parseInt(input.value || "0", 10) || 0;
+      const min = parseInt(input.min || "0", 10);
+      const max = parseInt(input.max || "10", 10);
+      const next = Math.max(min, Math.min(max, current + delta));
+      input.value = String(next);
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+  });
+}
+
+/**
+ * Wire room preset buttons to set square metre value quickly.
+ */
+function initRoomPresetButtons() {
+  document.querySelectorAll(".btn-room-preset").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const sqm = btn.getAttribute("data-sqm");
+      const input = document.getElementById("room_area_sqm");
+      if (input && sqm) {
+        input.value = sqm;
+        input.dispatchEvent(new Event("input", { bubbles: true }));
+      }
+    });
+  });
+}
+
+/**
+ * Sync active classes on toggle card containers.
+ */
+function syncAllToggleCards() {
+  ["respiratory", "heart", "pregnant"].forEach((id) => {
+    const cb = document.getElementById(id);
+    if (!cb) return;
+    const card = cb.closest(".toggle-card");
+    if (card) {
+      if (cb.checked) {
+        card.classList.add("is-checked");
+      } else {
+        card.classList.remove("is-checked");
+      }
+    }
+  });
+}
+
+/**
+ * Wire toggle card click and change events for health conditions.
+ */
+function initToggleCards() {
+  syncAllToggleCards();
+  ["respiratory", "heart", "pregnant"].forEach((id) => {
+    const cb = document.getElementById(id);
+    if (cb) {
+      cb.addEventListener("change", syncAllToggleCards);
+    }
+  });
+}
+
+/**
+ * Update quick city chips active styling.
+ * @param {string} val
+ */
+function updateCityChipStates(val) {
+  const norm = (val || "").trim().toLowerCase();
+  document.querySelectorAll(".btn-quick-city").forEach((btn) => {
+    const city = (btn.getAttribute("data-city") || "").toLowerCase();
+    if (city === norm) {
+      btn.classList.add("bg-primary", "text-white");
+      btn.classList.remove("bg-surface", "text-ink");
+    } else {
+      btn.classList.remove("bg-primary", "text-white");
+      btn.classList.add("bg-surface", "text-ink");
+    }
+  });
 }
 
 /**
  * Wire quick city buttons to auto-populate the city input.
  */
 function initQuickCityButtons() {
+  const cityInput = document.getElementById("city");
   const chips = document.querySelectorAll(".btn-quick-city");
   chips.forEach((btn) => {
     btn.addEventListener("click", () => {
-      const cityInput = document.getElementById("city");
       if (cityInput) {
-        cityInput.value = btn.getAttribute("data-city") || "";
+        const cityName = btn.getAttribute("data-city") || "";
+        cityInput.value = cityName;
+        updateCityChipStates(cityName);
         cityInput.focus();
       }
     });
+  });
+  cityInput?.addEventListener("input", () => {
+    updateCityChipStates(cityInput.value);
   });
 }
 
@@ -145,6 +230,8 @@ function initFormPrefill() {
   if (counter && saved.notes) {
     counter.textContent = `${saved.notes.length} / 300`;
   }
+  updateCityChipStates(saved.city);
+  syncAllToggleCards();
 }
 
 /**
