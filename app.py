@@ -220,11 +220,12 @@ def reading_summary(advice: dict[str, Any]) -> dict[str, Any]:
         advice: Synthesized advisory plan dictionary.
 
     Returns:
-        Dictionary containing PM2.5 value, timestamp, and source.
+        Dictionary containing PM2.5, calculated AQI, timestamp, and source.
     """
     air = advice.get("air", {})
     return {
         "pm25": air.get("pm25", 0.0),
+        "aqi": air.get("aqi", 0),
         "observed_at": air.get("observed_at", ""),
         "source": air.get("source", "live"),
     }
