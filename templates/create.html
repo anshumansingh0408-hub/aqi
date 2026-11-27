@@ -7,36 +7,66 @@
 {% endblock %}
 
 {% block content %}
-<div class="py-10 md:py-16 bg-white">
+<div class="py-10 md:py-16 bg-[#F8FAFA]">
   <div class="max-w-[1120px] mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="max-w-[65ch] space-y-4 mb-8">
+    <!-- Header -->
+    <div class="max-w-[65ch] space-y-3 mb-8">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white border border-border text-xs font-semibold text-primary shadow-2xs">
+        <span class="live-pulse" aria-hidden="true"></span>
+        <span>Customized Household Protection</span>
+      </div>
       <h1 class="text-3xl md:text-5xl font-serif font-bold text-ink">Plan around today's air</h1>
-      <p class="text-base md:text-lg text-muted">
-        Tell us where you are and who lives in your home. You get the day's air reading, safer times to go out, indoor air steps and commute alternatives.
+      <p class="text-base md:text-lg text-muted leading-relaxed">
+        Tell us where you are and who lives in your home. You get the day's air reading, safer times to go out, indoor
+        air steps and commute alternatives.
       </p>
     </div>
 
     <!-- Notice banner from failed lookups -->
-    <div id="saved-notice" class="hidden mb-6 p-4 rounded-xl border border-primary bg-surface text-ink text-sm" role="status"></div>
+    <div id="saved-notice" class="hidden mb-6 p-4 rounded-xl border border-primary bg-surface text-ink text-sm"
+      role="status"></div>
 
-    <!-- Error summary -->
-    <div id="error-summary" class="hidden mb-8 p-6 rounded-xl border border-red-300 bg-[#FBDADA] text-[#7F1D1D] focus:outline-none" role="alert" tabindex="-1">
-      <h2 class="text-lg font-bold mb-2">There was a problem with your details</h2>
-      <ul id="error-list" class="list-disc list-inside space-y-1 text-sm"></ul>
+    <!-- Error summary (Takes focus on validation failure) -->
+    <div id="error-summary"
+      class="hidden mb-8 p-6 rounded-2xl border border-red-300 bg-red-50 text-red-900 focus:outline-none shadow-xs"
+      role="alert" tabindex="-1">
+      <h2 class="text-lg font-bold mb-2 flex items-center gap-2">
+        <svg class="w-5 h-5 text-red-700" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+          <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+        </svg>
+        <span>There was a problem with your details</span>
+      </h2>
+      <ul id="error-list" class="list-disc list-inside space-y-1 text-sm text-red-800"></ul>
     </div>
 
-    <form id="plan-form" novalidate class="max-w-[720px] space-y-8">
+    <form id="plan-form" novalidate class="max-w-[760px] space-y-8">
       <!-- 1. Where are you? -->
-      <fieldset class="saans-card p-6 space-y-4">
-        <legend class="text-xl font-serif font-semibold text-ink px-2">Where are you?</legend>
+      <fieldset class="saans-card p-6 sm:p-7 space-y-4">
+        <div class="flex items-center gap-3 mb-2">
+          <span class="step-badge">1</span>
+          <legend class="text-xl font-serif font-semibold text-ink px-1">Where are you?</legend>
+        </div>
         <div>
-          <label for="city" class="block font-medium text-ink mb-1">
+          <label for="city" class="block font-medium text-ink mb-1.5 text-sm sm:text-base">
             City <span class="text-red-700" aria-hidden="true">*</span>
           </label>
           <input type="text" id="city" name="city" required minlength="2" maxlength="60"
-            class="w-full px-4 py-2.5 rounded-lg border border-border focus:border-primary focus:ring-1 focus:ring-primary text-ink min-h-[44px]"
+            placeholder="e.g. Delhi, Lucknow, Patna..."
+            class="w-full px-4 py-2.5 rounded-xl border border-border focus:border-primary focus:ring-1 focus:ring-primary text-ink min-h-[46px] shadow-2xs"
             aria-describedby="city-helper">
-          <p id="city-helper" class="text-xs text-muted mt-1.5">
+          
+          <!-- Quick City Chips for Indian Metros -->
+          <div class="mt-2.5 flex flex-wrap items-center gap-1.5">
+            <span class="text-xs text-muted font-medium mr-1">Quick pick:</span>
+            <button type="button" class="btn-quick-city px-2.5 py-1 rounded-full text-xs font-medium bg-surface hover:bg-border text-ink transition-colors min-h-[28px]" data-city="Delhi">Delhi</button>
+            <button type="button" class="btn-quick-city px-2.5 py-1 rounded-full text-xs font-medium bg-surface hover:bg-border text-ink transition-colors min-h-[28px]" data-city="Lucknow">Lucknow</button>
+            <button type="button" class="btn-quick-city px-2.5 py-1 rounded-full text-xs font-medium bg-surface hover:bg-border text-ink transition-colors min-h-[28px]" data-city="Patna">Patna</button>
+            <button type="button" class="btn-quick-city px-2.5 py-1 rounded-full text-xs font-medium bg-surface hover:bg-border text-ink transition-colors min-h-[28px]" data-city="Noida">Noida</button>
+            <button type="button" class="btn-quick-city px-2.5 py-1 rounded-full text-xs font-medium bg-surface hover:bg-border text-ink transition-colors min-h-[28px]" data-city="Gurugram">Gurugram</button>
+            <button type="button" class="btn-quick-city px-2.5 py-1 rounded-full text-xs font-medium bg-surface hover:bg-border text-ink transition-colors min-h-[28px]" data-city="Mumbai">Mumbai</button>
+          </div>
+
+          <p id="city-helper" class="text-xs text-muted mt-2">
             Add the state if the name is common, for example Aurangabad, Maharashtra.
           </p>
           <p id="city-error" class="text-xs text-red-700 mt-1 hidden"></p>
@@ -44,59 +74,68 @@
       </fieldset>
 
       <!-- 2. Who lives at home? -->
-      <fieldset class="saans-card p-6 space-y-4">
-        <legend class="text-xl font-serif font-semibold text-ink px-2">Who lives at home?</legend>
+      <fieldset class="saans-card p-6 sm:p-7 space-y-4">
+        <div class="flex items-center gap-3 mb-2">
+          <span class="step-badge">2</span>
+          <legend class="text-xl font-serif font-semibold text-ink px-1">Who lives at home?</legend>
+        </div>
+        <p class="text-xs text-muted -mt-2">Guidance limits tighten if young children, elderly family, or vulnerable members are present.</p>
+        
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label for="children" class="block font-medium text-ink mb-1">Children under 18</label>
+          <div class="p-3.5 rounded-xl border border-border bg-surface/50 space-y-1">
+            <label for="children" class="block font-medium text-ink text-sm">Children under 18</label>
             <input type="number" id="children" name="children" min="0" max="10" value="0"
-              class="w-full px-4 py-2.5 rounded-lg border border-border focus:border-primary focus:ring-1 focus:ring-primary text-ink min-h-[44px]">
+              class="w-full px-3.5 py-2 rounded-lg border border-border focus:border-primary focus:ring-1 focus:ring-primary text-ink min-h-[44px] bg-white">
             <p id="children-error" class="text-xs text-red-700 mt-1 hidden"></p>
           </div>
-          <div>
-            <label for="elderly" class="block font-medium text-ink mb-1">Adults 60 and over</label>
+          <div class="p-3.5 rounded-xl border border-border bg-surface/50 space-y-1">
+            <label for="elderly" class="block font-medium text-ink text-sm">Adults 60 and over</label>
             <input type="number" id="elderly" name="elderly" min="0" max="10" value="0"
-              class="w-full px-4 py-2.5 rounded-lg border border-border focus:border-primary focus:ring-1 focus:ring-primary text-ink min-h-[44px]">
+              class="w-full px-3.5 py-2 rounded-lg border border-border focus:border-primary focus:ring-1 focus:ring-primary text-ink min-h-[44px] bg-white">
             <p id="elderly-error" class="text-xs text-red-700 mt-1 hidden"></p>
           </div>
         </div>
 
         <div class="space-y-3 pt-2">
-          <div class="flex items-start gap-3">
+          <div class="flex items-start gap-3 p-3 rounded-xl border border-border/80 hover:bg-surface/60 transition-colors">
             <input type="checkbox" id="respiratory" name="respiratory"
-              class="mt-1 h-5 w-5 rounded border-border text-primary focus:ring-primary">
-            <label for="respiratory" class="text-sm font-medium text-ink cursor-pointer">
+              class="mt-0.5 h-5 w-5 rounded border-border text-primary focus:ring-primary">
+            <label for="respiratory" class="text-sm font-medium text-ink cursor-pointer select-none">
               Someone has asthma or another lung condition
             </label>
           </div>
-          <div class="flex items-start gap-3">
+          <div class="flex items-start gap-3 p-3 rounded-xl border border-border/80 hover:bg-surface/60 transition-colors">
             <input type="checkbox" id="heart" name="heart"
-              class="mt-1 h-5 w-5 rounded border-border text-primary focus:ring-primary">
-            <label for="heart" class="text-sm font-medium text-ink cursor-pointer">
+              class="mt-0.5 h-5 w-5 rounded border-border text-primary focus:ring-primary">
+            <label for="heart" class="text-sm font-medium text-ink cursor-pointer select-none">
               Someone has a heart condition
             </label>
           </div>
-          <div class="flex items-start gap-3">
+          <div class="flex items-start gap-3 p-3 rounded-xl border border-border/80 hover:bg-surface/60 transition-colors">
             <input type="checkbox" id="pregnant" name="pregnant"
-              class="mt-1 h-5 w-5 rounded border-border text-primary focus:ring-primary">
-            <label for="pregnant" class="text-sm font-medium text-ink cursor-pointer">
+              class="mt-0.5 h-5 w-5 rounded border-border text-primary focus:ring-primary">
+            <label for="pregnant" class="text-sm font-medium text-ink cursor-pointer select-none">
               Someone is pregnant
             </label>
           </div>
         </div>
         <p class="text-xs text-muted pt-2 border-t border-border">
-          Used to adjust the advice and not saved on our server. If you use the AI explanation, a summary that mentions these groups is sent to Google Gemini.
+          Used to adjust the advice and not saved on our server. If you use the AI explanation, a summary that mentions these groups is sent to {{ ai_name }}.
         </p>
       </fieldset>
 
       <!-- 3. Your home -->
-      <fieldset class="saans-card p-6 space-y-4">
-        <legend class="text-xl font-serif font-semibold text-ink px-2">Your home</legend>
+      <fieldset class="saans-card p-6 sm:p-7 space-y-4">
+        <div class="flex items-center gap-3 mb-2">
+          <span class="step-badge">3</span>
+          <legend class="text-xl font-serif font-semibold text-ink px-1">Your home</legend>
+        </div>
+        
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label for="heating" class="block font-medium text-ink mb-1">Heating</label>
+            <label for="heating" class="block font-medium text-ink mb-1 text-sm">Heating</label>
             <select id="heating" name="heating"
-              class="w-full px-4 py-2.5 rounded-lg border border-border focus:border-primary focus:ring-1 focus:ring-primary text-ink min-h-[44px] bg-white">
+              class="w-full px-4 py-2.5 rounded-xl border border-border focus:border-primary focus:ring-1 focus:ring-primary text-ink min-h-[44px] bg-white shadow-2xs">
               <option value="none">None</option>
               <option value="electric">Electric</option>
               <option value="gas">Gas</option>
@@ -104,9 +143,9 @@
             </select>
           </div>
           <div>
-            <label for="cooking" class="block font-medium text-ink mb-1">Cooking</label>
+            <label for="cooking" class="block font-medium text-ink mb-1 text-sm">Cooking</label>
             <select id="cooking" name="cooking"
-              class="w-full px-4 py-2.5 rounded-lg border border-border focus:border-primary focus:ring-1 focus:ring-primary text-ink min-h-[44px] bg-white">
+              class="w-full px-4 py-2.5 rounded-xl border border-border focus:border-primary focus:ring-1 focus:ring-primary text-ink min-h-[44px] bg-white shadow-2xs">
               <option value="lpg" selected>LPG</option>
               <option value="induction">Induction</option>
               <option value="biomass">Biomass</option>
@@ -115,26 +154,28 @@
         </div>
 
         <div>
-          <label for="room_area_sqm" class="block font-medium text-ink mb-1">Room area in square metres</label>
+          <label for="room_area_sqm" class="block font-medium text-ink mb-1 text-sm">Room area in square metres</label>
           <input type="number" id="room_area_sqm" name="room_area_sqm" min="5" max="200" value="20" step="any"
-            class="w-full px-4 py-2.5 rounded-lg border border-border focus:border-primary focus:ring-1 focus:ring-primary text-ink min-h-[44px]"
+            class="w-full px-4 py-2.5 rounded-xl border border-border focus:border-primary focus:ring-1 focus:ring-primary text-ink min-h-[44px] shadow-2xs"
             aria-describedby="room-helper">
-          <p id="room-helper" class="text-xs text-muted mt-1.5">Length times width of the room where you spend most time</p>
+          <p id="room-helper" class="text-xs text-muted mt-1.5">
+            Length times width of the room where you spend most time (~15-20 m² bedroom, ~25-35 m² living room).
+          </p>
           <p id="room-error" class="text-xs text-red-700 mt-1 hidden"></p>
         </div>
 
-        <div class="space-y-3 pt-2">
-          <div class="flex items-start gap-3">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+          <div class="flex items-start gap-3 p-3 rounded-xl border border-border/80 hover:bg-surface/60 transition-colors">
             <input type="checkbox" id="has_purifier" name="has_purifier"
-              class="mt-1 h-5 w-5 rounded border-border text-primary focus:ring-primary">
-            <label for="has_purifier" class="text-sm font-medium text-ink cursor-pointer">
+              class="mt-0.5 h-5 w-5 rounded border-border text-primary focus:ring-primary">
+            <label for="has_purifier" class="text-sm font-medium text-ink cursor-pointer select-none">
               We have an air purifier
             </label>
           </div>
-          <div class="flex items-start gap-3">
+          <div class="flex items-start gap-3 p-3 rounded-xl border border-border/80 hover:bg-surface/60 transition-colors">
             <input type="checkbox" id="smokers" name="smokers"
-              class="mt-1 h-5 w-5 rounded border-border text-primary focus:ring-primary">
-            <label for="smokers" class="text-sm font-medium text-ink cursor-pointer">
+              class="mt-0.5 h-5 w-5 rounded border-border text-primary focus:ring-primary">
+            <label for="smokers" class="text-sm font-medium text-ink cursor-pointer select-none">
               Someone smokes indoors
             </label>
           </div>
@@ -142,12 +183,16 @@
       </fieldset>
 
       <!-- 4. Your commute -->
-      <fieldset class="saans-card p-6 space-y-4">
-        <legend class="text-xl font-serif font-semibold text-ink px-2">Your commute</legend>
+      <fieldset class="saans-card p-6 sm:p-7 space-y-4">
+        <div class="flex items-center gap-3 mb-2">
+          <span class="step-badge">4</span>
+          <legend class="text-xl font-serif font-semibold text-ink px-1">Your commute</legend>
+        </div>
+        
         <div>
-          <label for="commute_mode" class="block font-medium text-ink mb-1">Usual mode</label>
+          <label for="commute_mode" class="block font-medium text-ink mb-1 text-sm">Usual mode</label>
           <select id="commute_mode" name="commute_mode"
-            class="w-full px-4 py-2.5 rounded-lg border border-border focus:border-primary focus:ring-1 focus:ring-primary text-ink min-h-[44px] bg-white">
+            class="w-full px-4 py-2.5 rounded-xl border border-border focus:border-primary focus:ring-1 focus:ring-primary text-ink min-h-[44px] bg-white shadow-2xs">
             <option value="car_petrol">Car (petrol)</option>
             <option value="car_diesel">Car (diesel)</option>
             <option value="car_electric">Car (electric)</option>
@@ -160,26 +205,27 @@
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label for="commute_km_one_way" class="block font-medium text-ink mb-1">Distance one way (km)</label>
-            <input type="number" id="commute_km_one_way" name="commute_km_one_way" min="0" max="200" value="10" step="any"
-              class="w-full px-4 py-2.5 rounded-lg border border-border focus:border-primary focus:ring-1 focus:ring-primary text-ink min-h-[44px]">
+            <label for="commute_km_one_way" class="block font-medium text-ink mb-1 text-sm">Distance one way (km)</label>
+            <input type="number" id="commute_km_one_way" name="commute_km_one_way" min="0" max="200" value="10"
+              step="any"
+              class="w-full px-4 py-2.5 rounded-xl border border-border focus:border-primary focus:ring-1 focus:ring-primary text-ink min-h-[44px] shadow-2xs">
             <p id="km-error" class="text-xs text-red-700 mt-1 hidden"></p>
           </div>
           <div>
-            <label for="commute_days_per_week" class="block font-medium text-ink mb-1">Days per week</label>
+            <label for="commute_days_per_week" class="block font-medium text-ink mb-1 text-sm">Days per week</label>
             <input type="number" id="commute_days_per_week" name="commute_days_per_week" min="0" max="7" value="5"
-              class="w-full px-4 py-2.5 rounded-lg border border-border focus:border-primary focus:ring-1 focus:ring-primary text-ink min-h-[44px]">
+              class="w-full px-4 py-2.5 rounded-xl border border-border focus:border-primary focus:ring-1 focus:ring-primary text-ink min-h-[44px] shadow-2xs">
             <p id="days-error" class="text-xs text-red-700 mt-1 hidden"></p>
           </div>
         </div>
 
         <div>
-          <label for="usual_outdoor_hour" class="block font-medium text-ink mb-1">Usual time you go out</label>
+          <label for="usual_outdoor_hour" class="block font-medium text-ink mb-1 text-sm">Usual time you go out</label>
           <select id="usual_outdoor_hour" name="usual_outdoor_hour"
-            class="w-full px-4 py-2.5 rounded-lg border border-border focus:border-primary focus:ring-1 focus:ring-primary text-ink min-h-[44px] bg-white"
+            class="w-full px-4 py-2.5 rounded-xl border border-border focus:border-primary focus:ring-1 focus:ring-primary text-ink min-h-[44px] bg-white shadow-2xs"
             aria-describedby="hour-helper">
             {% for h in range(24) %}
-            <option value="{{ h }}" {% if h == 8 %}selected{% endif %}>{{ h }}:00</option>
+            <option value="{{ h }}" {% if h==8 %}selected{% endif %}>{{ h }}:00</option>
             {% endfor %}
           </select>
           <p id="hour-helper" class="text-xs text-muted mt-1.5">School run, commute or morning walk</p>
@@ -188,16 +234,18 @@
 
       <!-- 5. Optional manual PM2.5 details -->
       <details id="manual-details" class="saans-card p-6">
-        <summary class="font-serif font-semibold text-ink cursor-pointer hover:text-primary transition-colors py-1">
-          Enter today's PM2.5 yourself (optional)
+        <summary class="font-serif font-semibold text-ink cursor-pointer hover:text-primary transition-colors py-1 flex items-center justify-between">
+          <span>Enter today's PM2.5 yourself (optional)</span>
+          <span class="text-xs text-primary font-sans font-medium">Use own sensor</span>
         </summary>
         <div class="mt-4 space-y-2 border-t border-border pt-4">
-          <label for="manual_pm25" class="block font-medium text-ink">PM2.5 in µg/m³</label>
+          <label for="manual_pm25" class="block font-medium text-ink text-sm">PM2.5 in µg/m³</label>
           <input type="number" id="manual_pm25" name="manual_pm25" min="0" max="1000" step="any" placeholder="e.g. 150"
-            class="w-full px-4 py-2.5 rounded-lg border border-border focus:border-primary focus:ring-1 focus:ring-primary text-ink min-h-[44px]"
+            class="w-full px-4 py-2.5 rounded-xl border border-border focus:border-primary focus:ring-1 focus:ring-primary text-ink min-h-[44px] shadow-2xs"
             aria-describedby="manual-helper">
           <p id="manual-helper" class="text-xs text-muted">
-            Use this if the city lookup fails, or if you have a reading from a nearby monitor or your own sensor. Leave it empty to look up your city.
+            Use this if the city lookup fails, or if you have a reading from a nearby monitor or your own sensor. Leave
+            it empty to look up your city.
           </p>
           <p id="manual-error" class="text-xs text-red-700 mt-1 hidden"></p>
         </div>
@@ -205,25 +253,26 @@
 
       <!-- 6. Notes -->
       <fieldset class="saans-card p-6 space-y-2">
-        <legend class="text-xl font-serif font-semibold text-ink px-2">Notes (optional)</legend>
+        <legend class="text-xl font-serif font-semibold text-ink px-1">Notes (optional)</legend>
         <label for="notes" class="sr-only">Personal notes or context</label>
         <textarea id="notes" name="notes" maxlength="300" rows="3"
-          class="w-full px-4 py-2.5 rounded-lg border border-border focus:border-primary focus:ring-1 focus:ring-primary text-ink"
+          placeholder="Mention health preferences, doctor recommendations, or unique commute routes..."
+          class="w-full px-4 py-2.5 rounded-xl border border-border focus:border-primary focus:ring-1 focus:ring-primary text-ink shadow-2xs"
           aria-describedby="notes-counter"></textarea>
         <div class="flex justify-between items-center text-xs text-muted">
           <span>Add any routine details or health preferences.</span>
-          <span id="notes-counter">0 / 300</span>
+          <span id="notes-counter" class="font-mono">0 / 300</span>
         </div>
       </fieldset>
 
       <!-- Buttons -->
-      <div class="flex flex-col sm:flex-row gap-4 pt-4">
+      <div class="flex flex-col sm:flex-row gap-4 pt-2">
         <button type="submit" id="submit-btn"
-          class="bg-primary hover:bg-primary-dark text-white font-medium px-8 py-3 rounded-lg transition-colors min-h-[48px] flex items-center justify-center">
+          class="bg-primary hover:bg-primary-dark text-white font-medium px-8 py-3.5 rounded-xl transition-all shadow-xs hover:shadow min-h-[48px] flex items-center justify-center">
           Build my plan
         </button>
         <button type="button" id="example-btn"
-          class="border border-primary text-primary hover:bg-surface font-medium px-6 py-3 rounded-lg transition-colors min-h-[48px] flex items-center justify-center">
+          class="border border-primary text-primary hover:bg-surface font-medium px-6 py-3.5 rounded-xl transition-colors min-h-[48px] flex items-center justify-center">
           Fill with an example
         </button>
       </div>
