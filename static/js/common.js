@@ -173,3 +173,27 @@ function formatWindow(w) {
   const nextHour = (w.hour + 1) % 24;
   return `${w.hour}:00 to ${nextHour}:00 (average ${w.avg_pm25.toFixed(1)} µg/m³)`;
 }
+
+/** @type {string} */
+let aiProviderName = "the AI service";
+
+/** Fetch options to populate AI provider display name. */
+async function fetchOptionsAiName() {
+  try {
+    const res = await api("/api/options");
+    if (res.ok && res.data && res.data.ai_name) {
+      aiProviderName = res.data.ai_name;
+    }
+  } catch (err) {
+    // Retain default "the AI service"
+  }
+}
+fetchOptionsAiName();
+
+/**
+ * Return the active language model provider name.
+ * @return {string}
+ */
+function getAiProviderName() {
+  return aiProviderName;
+}
