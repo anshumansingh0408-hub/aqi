@@ -1,7 +1,7 @@
-"""Unit tests for the Saans Gemini AI client integration.
+"""Unit tests for the Saans AI client integration.
 
-Validates prompt generation, strict numeric grounding, hallucination removal,
-caching, eviction, safety constraints, and fallback behavior using mock HTTP calls.
+Validates multi-provider support (Groq and Gemini), prompt generation, strict numeric
+grounding, hallucination removal, caching, eviction, safety constraints, and fallback behavior.
 """
 
 import json
@@ -21,16 +21,20 @@ from ai_client import (
     build_context,
     build_explain_prompt,
     call_gemini,
+    call_llm,
     collect_allowed_numbers,
     drop_ungrounded,
     explain_plan,
     fallback_explanation,
     find_ungrounded,
     get_cached,
+    get_provider,
     parse_json_response,
+    resolve_api_key,
     set_cached,
     validate_explanation,
 )
+import requests
 
 
 def _sample_advice(hourly: bool = True) -> dict[str, Any]:
@@ -84,6 +88,24 @@ def _mock_gemini_response(data: dict[str, Any] | str) -> MagicMock:
     mock.status_code = 200
     mock.json.return_value = {
         "candidates": [{"content": {"parts": [{"text": text}]}}]
+    }
+    return mock
+
+
+def _mock_groq_response(data: dict[str, Any] | str) -> MagicMock:
+    """Build mock requests.Response for Groq chat completions API.
+
+    Args:
+        data: Payload string or JSON dictionary.
+
+    Returns:
+        Configured mock Response object.
+    """
+    text = json.dumps(data) if isinstance(data, dict) else str(data)
+    mock = MagicMock()
+    mock.status_code = 200
+    mock.json.return_value = {
+        "choices": [{"message": {"content": text}}]
     }
     return mock
 
@@ -183,6 +205,93 @@ class TestAIClientGroundingAndPrompts(unittest.TestCase):
         self.assertIn("<user_question>", prompt)
         self.assertIn("redirect medical/health questions to a doctor", prompt)
 
+    def test_prompts_contain_neither_gemini_nor_groq(self) -> None:
+        """Verify prompts do not mention specific vendor names Gemini or Groq."""
+        advice = _sample_advice(hourly=True)
+        exp_prompt = build_explain_prompt(advice, "Delhi", "Family notes").lower()
+        chat_prompt = build_chat_prompt(advice, "Delhi", "Can I walk outside?").lower()
+        for p in (exp_prompt, chat_prompt):
+            self.assertNotIn("gemini", p)
+            self.assertNotIn("groq", p)
+
+
+class TestAIClientMultiProvider(unittest.TestCase):
+    """Tests for multi-provider resolution, dispatch, and provider-specific headers."""
+
+    def setUp(self) -> None:
+        """Clear memory cache before every test run."""
+        with _CACHE_LOCK:
+            _CACHE.clear()
+
+    def test_get_provider_resolution(self) -> None:
+        """Verify provider resolution hierarchy across environment flags and keys."""
+        with patch.dict(os.environ, {"AI_PROVIDER": "groq"}, clear=True):
+            self.assertEqual(get_provider(), "groq")
+        with patch.dict(os.environ, {"AI_PROVIDER": "gemini"}, clear=True):
+            self.assertEqual(get_provider(), "gemini")
+        with patch.dict(os.environ, {"GROQ_API_KEY": "gk"}, clear=True):
+            self.assertEqual(get_provider(), "groq")
+            self.assertEqual(resolve_api_key(), "gk")
+        with patch.dict(os.environ, {"GEMINI_API_KEY": "mk"}, clear=True):
+            self.assertEqual(get_provider(), "gemini")
+            self.assertEqual(resolve_api_key(), "mk")
+        with patch.dict(os.environ, {"GROQ_API_KEY": "gk", "GEMINI_API_KEY": "mk"}, clear=True):
+            self.assertEqual(get_provider(), "groq")
+        with patch.dict(os.environ, {}, clear=True):
+            self.assertEqual(get_provider(), "none")
+            self.assertEqual(resolve_api_key(), "")
+        with patch.dict(os.environ, {"AI_PROVIDER": "invalid", "GROQ_API_KEY": "gk"}, clear=True):
+            self.assertEqual(get_provider(), "groq")
+
+    @patch("requests.post")
+    def test_call_llm_groq(self, mock_post: MagicMock) -> None:
+        """Verify Groq API call sets Bearer token header, model, and json mode."""
+        mock_post.return_value = _mock_groq_response('{"ok": true}')
+        env = {"AI_PROVIDER": "groq", "GROQ_MODEL": "custom-groq"}
+        with patch.dict(os.environ, env, clear=True):
+            res = call_llm("test prompt", "dummy-secret-groq", expect_json=True)
+        self.assertEqual(res, '{"ok": true}')
+        call_args = mock_post.call_args
+        self.assertEqual(call_args[1]["headers"]["Authorization"], "Bearer dummy-secret-groq")
+        self.assertNotIn("dummy-secret-groq", call_args[0][0])
+        body = call_args[1]["json"]
+        self.assertEqual(body["model"], "custom-groq")
+        self.assertEqual(body["response_format"], {"type": "json_object"})
+        self.assertNotIn("dummy-secret-groq", json.dumps(body))
+
+    @patch("requests.post")
+    def test_call_llm_gemini(self, mock_post: MagicMock) -> None:
+        """Verify Gemini API call sets x-goog-api-key header and custom model."""
+        mock_post.return_value = _mock_gemini_response('{"test": true}')
+        env = {"AI_PROVIDER": "gemini", "GEMINI_MODEL": "custom-gemini"}
+        with patch.dict(os.environ, env, clear=True):
+            call_llm("test prompt", "dummy-secret-gemini", expect_json=True)
+        call_args = mock_post.call_args
+        expected_url = (
+            "https://generativelanguage.googleapis.com/v1beta/models/"
+            "custom-gemini:generateContent"
+        )
+        self.assertIn(expected_url, call_args[0][0])
+        self.assertEqual(call_args[1]["headers"]["x-goog-api-key"], "dummy-secret-gemini")
+        self.assertNotIn("dummy-secret-gemini", call_args[0][0])
+
+    @patch("requests.post")
+    def test_error_handling_both_providers(self, mock_post: MagicMock) -> None:
+        """Verify network errors and HTTP codes raise sanitized generic RuntimeError."""
+        for prov, key in (("groq", "secret-gsk-999"), ("gemini", "secret-aiza-888")):
+            for err in (
+                requests.exceptions.Timeout("timed out"),
+                requests.exceptions.ConnectionError("conn failed"),
+            ):
+                mock_post.side_effect = err
+                with patch.dict(os.environ, {"AI_PROVIDER": prov}, clear=True):
+                    with self.assertRaises(RuntimeError) as ctx:
+                        call_llm("prompt", key, expect_json=True)
+                err_msg = str(ctx.exception)
+                self.assertNotIn(key, err_msg)
+                self.assertNotIn("groq", err_msg.lower())
+                self.assertNotIn("googleapis", err_msg.lower())
+
 
 class TestAIClientNetworkAndParsing(unittest.TestCase):
     """Tests for HTTP client, model parameter overrides, and response parsing."""
@@ -193,29 +302,12 @@ class TestAIClientNetworkAndParsing(unittest.TestCase):
             _CACHE.clear()
 
     @patch("requests.post")
-    def test_call_gemini_headers_and_model(self, mock_post: MagicMock) -> None:
-        """Verify API key is passed via headers and model can be customized."""
+    def test_call_gemini_backwards_compatible(self, mock_post: MagicMock) -> None:
+        """Verify call_gemini alias dispatches successfully using active provider."""
         mock_post.return_value = _mock_gemini_response('{"test": true}')
-        with patch.dict(os.environ, {"GEMINI_MODEL": "custom-gemini"}):
-            call_gemini("test prompt", "dummy-secret-key", expect_json=True)
-        call_args = mock_post.call_args
-        expected_url = (
-            "https://generativelanguage.googleapis.com/v1beta/models/"
-            "custom-gemini:generateContent"
-        )
-        self.assertIn(expected_url, call_args[0][0])
-        self.assertEqual(call_args[1]["headers"]["x-goog-api-key"], "dummy-secret-key")
-        self.assertNotIn("dummy-secret-key", call_args[0][0])
-
-    @patch("requests.post")
-    def test_call_gemini_error_handling(self, mock_post: MagicMock) -> None:
-        """Verify network errors raise RuntimeError without leaking credentials."""
-        mock_post.side_effect = Exception("network error secret-key-xyz")
-        with self.assertRaises(RuntimeError) as ctx:
-            call_gemini("prompt", "secret-key-xyz", expect_json=True)
-        err = str(ctx.exception)
-        self.assertNotIn("secret-key-xyz", err)
-        self.assertNotIn("googleapis", err)
+        with patch.dict(os.environ, {"AI_PROVIDER": "gemini"}):
+            res = call_gemini("test prompt", "dummy-secret-key", expect_json=True)
+        self.assertEqual(res, '{"test": true}')
 
     def test_parse_json_response(self) -> None:
         """Verify json decoding for plain and markdown code-fenced responses."""
@@ -310,22 +402,37 @@ class TestAIClientWorkflowsAndCaching(unittest.TestCase):
         """Verify successful plan explanation is cached across subsequent calls."""
         advice = _sample_advice(hourly=True)
         fb = fallback_explanation(advice, "Delhi")
+        mock_post.return_value = _mock_groq_response(fb)
+        with patch.dict(os.environ, {"AI_PROVIDER": "groq"}, clear=True):
+            res1 = explain_plan(advice, "Delhi", "Notes", "test-key")
+            self.assertEqual(res1["source"], "ai")
+            self.assertEqual(mock_post.call_count, 1)
+            res2 = explain_plan(advice, "Delhi", "Notes", "test-key")
+            self.assertEqual(res2["source"], "ai")
+            self.assertEqual(mock_post.call_count, 1)
+
+    @patch("requests.post")
+    def test_cache_key_differs_between_providers(self, mock_post: MagicMock) -> None:
+        """Verify switching AI provider creates separate cache entries for identical plan."""
+        advice = _sample_advice(hourly=True)
+        fb = fallback_explanation(advice, "Delhi")
+        mock_post.return_value = _mock_groq_response(fb)
+        with patch.dict(os.environ, {"AI_PROVIDER": "groq"}, clear=True):
+            explain_plan(advice, "Delhi", "Notes", "key-groq")
         mock_post.return_value = _mock_gemini_response(fb)
-        res1 = explain_plan(advice, "Delhi", "Notes", "test-key")
-        self.assertEqual(res1["source"], "ai")
-        self.assertEqual(mock_post.call_count, 1)
-        res2 = explain_plan(advice, "Delhi", "Notes", "test-key")
-        self.assertEqual(res2["source"], "ai")
-        self.assertEqual(mock_post.call_count, 1)
+        with patch.dict(os.environ, {"AI_PROVIDER": "gemini"}, clear=True):
+            explain_plan(advice, "Delhi", "Notes", "key-gemini")
+        self.assertEqual(mock_post.call_count, 2)
 
     @patch("requests.post")
     def test_explain_plan_removes_hallucinated_numbers(self, mock_post: MagicMock) -> None:
-        """Verify hallucinated numbers in AI output are dropped and recorded."""
+        """Verify hallucinated numbers in AI output are dropped under Groq provider."""
         advice = _sample_advice(hourly=True)
         fb = fallback_explanation(advice, "Delhi")
         fb["summary"] = "Air purifier eliminates 70% fewer particles."
-        mock_post.return_value = _mock_gemini_response(fb)
-        res = explain_plan(advice, "Delhi", "Notes", "test-key")
+        mock_post.return_value = _mock_groq_response(fb)
+        with patch.dict(os.environ, {"AI_PROVIDER": "groq"}, clear=True):
+            res = explain_plan(advice, "Delhi", "Notes", "test-key")
         self.assertEqual(res["source"], "ai")
         self.assertGreater(res.get("grounding_removed", 0), 0)
         self.assertNotIn("70%", res["summary"])
@@ -336,14 +443,15 @@ class TestAIClientWorkflowsAndCaching(unittest.TestCase):
         advice = _sample_advice(hourly=True)
         mock_post.side_effect = [
             Exception("error"),
-            _mock_gemini_response(fallback_explanation(advice, "Delhi")),
+            _mock_groq_response(fallback_explanation(advice, "Delhi")),
         ]
-        res1 = explain_plan(advice, "Delhi", "Notes", "test-key")
-        self.assertEqual(res1["source"], "fallback")
-        self.assertTrue(res1.get("ai_error"))
-        res2 = explain_plan(advice, "Delhi", "Notes", "test-key")
-        self.assertEqual(res2["source"], "ai")
-        self.assertEqual(mock_post.call_count, 2)
+        with patch.dict(os.environ, {"AI_PROVIDER": "groq"}, clear=True):
+            res1 = explain_plan(advice, "Delhi", "Notes", "test-key")
+            self.assertEqual(res1["source"], "fallback")
+            self.assertTrue(res1.get("ai_error"))
+            res2 = explain_plan(advice, "Delhi", "Notes", "test-key")
+            self.assertEqual(res2["source"], "ai")
+            self.assertEqual(mock_post.call_count, 2)
 
     @patch("requests.post")
     def test_answer_question_validation_and_fallback(self, mock_post: MagicMock) -> None:
@@ -351,8 +459,9 @@ class TestAIClientWorkflowsAndCaching(unittest.TestCase):
         advice = _sample_advice(hourly=True)
         with self.assertRaises(ValueError):
             answer_question(advice, "Delhi", "   ", "test-key")
-        mock_post.return_value = _mock_gemini_response("It will drop PM2.5 by 95% today.")
-        res = answer_question(advice, "Delhi", "Is it better outdoors?", "test-key")
+        mock_post.return_value = _mock_groq_response("It will drop PM2.5 by 95% today.")
+        with patch.dict(os.environ, {"AI_PROVIDER": "groq"}, clear=True):
+            res = answer_question(advice, "Delhi", "Is it better outdoors?", "test-key")
         self.assertEqual(res["source"], "fallback")
         self.assertEqual(res.get("grounding_removed"), 1)
 
@@ -360,13 +469,14 @@ class TestAIClientWorkflowsAndCaching(unittest.TestCase):
     def test_answer_question_failure_handling(self, mock_post: MagicMock) -> None:
         """Verify AI query failure falls back politely and does not poison cache."""
         advice = _sample_advice(hourly=True)
-        mock_post.side_effect = [Exception("error"), _mock_gemini_response("Stay indoors.")]
-        res1 = answer_question(advice, "Delhi", "What to do?", "test-key")
-        self.assertEqual(res1["source"], "fallback")
-        self.assertIn("assistant is currently unavailable", res1["answer"].lower())
-        res2 = answer_question(advice, "Delhi", "What to do?", "test-key")
-        self.assertEqual(res2["source"], "ai")
-        self.assertEqual(mock_post.call_count, 2)
+        mock_post.side_effect = [Exception("error"), _mock_groq_response("Stay indoors.")]
+        with patch.dict(os.environ, {"AI_PROVIDER": "groq"}, clear=True):
+            res1 = answer_question(advice, "Delhi", "What to do?", "test-key")
+            self.assertEqual(res1["source"], "fallback")
+            self.assertIn("assistant is currently unavailable", res1["answer"].lower())
+            res2 = answer_question(advice, "Delhi", "What to do?", "test-key")
+            self.assertEqual(res2["source"], "ai")
+            self.assertEqual(mock_post.call_count, 2)
 
     def test_cache_ttl_and_eviction(self) -> None:
         """Verify cache expiration, LRU size limitation, and return immutability."""
