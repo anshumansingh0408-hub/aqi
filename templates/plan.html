@@ -327,7 +327,7 @@
           Plain-language explanation
         </h2>
         <p class="text-sm text-muted mb-6">
-          Gemini synthesizes the computed rules and your household profile into a conversational guide. Numbers are strictly grounded in your plan.
+          {{ ai_name }} synthesizes the computed rules and your household profile into a conversational guide. Numbers are strictly grounded in your plan.
         </p>
         <button type="button" id="btn-explain" class="bg-primary hover:bg-primary-dark text-white font-medium px-6 py-2.5 rounded-xl transition-colors flex items-center min-h-[44px] shadow-xs">
           Explain my plan in plain words
@@ -343,7 +343,7 @@
         <div id="explain-output" class="hidden mt-6 space-y-6">
           <!-- Fallback or grounding notices -->
           <div id="explain-fallback-alert" class="hidden p-4 rounded-xl bg-surface border border-border text-sm text-muted">
-            <p><strong>Note:</strong> Gemini was temporarily unavailable. This explanation was compiled directly from the rule engine output.</p>
+            <p><strong>Note:</strong> {{ ai_name }} was temporarily unavailable. This explanation was compiled directly from the rule engine output.</p>
           </div>
           <div id="explain-grounding-alert" class="hidden p-4 rounded-xl bg-surface border border-border text-sm text-muted">
             <p id="explain-grounding-text"></p>
