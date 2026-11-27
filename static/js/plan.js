@@ -6,6 +6,16 @@
 
 /* global el, api, describeError, loadSession, saveSession, announce, formatHour, ACTIVITY_LABELS, BAND_CLASSES */
 
+function pm25ToAqi(pm25) {
+  if (typeof pm25 !== "number" || isNaN(pm25) || pm25 < 0) return 0;
+  if (pm25 <= 30) return Math.round((50 / 30) * pm25);
+  if (pm25 <= 60) return Math.round(50 + (50 / 30) * (pm25 - 30));
+  if (pm25 <= 90) return Math.round(100 + (100 / 30) * (pm25 - 60));
+  if (pm25 <= 120) return Math.round(200 + (100 / 30) * (pm25 - 90));
+  if (pm25 <= 250) return Math.round(300 + (100 / 130) * (pm25 - 120));
+  return Math.min(500, Math.round(400 + (100 / 130) * (pm25 - 250)));
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   const inputs = loadSession("saans.inputs");
   if (!inputs || !inputs.city) {
@@ -146,10 +156,16 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function renderToday(advice, reading) {
+    const aqi = advice.air?.aqi ?? pm25ToAqi(reading.pm25);
+
     // Air Quality Gauge Card (Spectrum)
     const gaugeVal = document.getElementById("plan-gauge-val");
     if (gaugeVal) {
-      gaugeVal.textContent = reading.pm25.toFixed(1);
+      gaugeVal.textContent = String(aqi);
+    }
+    const gaugePmSub = document.getElementById("plan-gauge-pm25-sub");
+    if (gaugePmSub && typeof reading.pm25 === "number") {
+      gaugePmSub.textContent = `${reading.pm25.toFixed(1)} µg/m³ PM2.5`;
     }
     const gaugeChip = document.getElementById("plan-gauge-chip");
     if (gaugeChip && advice.air?.band) {
@@ -158,14 +174,14 @@ document.addEventListener("DOMContentLoaded", () => {
       gaugeChip.className = `band-chip ${bandClass}`;
     }
     const gaugePointer = document.getElementById("plan-spectrum-pointer");
-    if (gaugePointer && typeof reading.pm25 === "number") {
-      const pct = Math.min(Math.max((reading.pm25 / 300) * 100, 3), 97);
+    if (gaugePointer && typeof aqi === "number") {
+      const pct = Math.min(Math.max((aqi / 500) * 100, 3), 97);
       gaugePointer.style.left = `${pct}%`;
     }
 
     // Dual-Anchor Fields (Outdoor vs Indoor)
     const dualOutdoorVal = document.getElementById("dual-outdoor-val");
-    if (dualOutdoorVal) dualOutdoorVal.textContent = reading.pm25.toFixed(1);
+    if (dualOutdoorVal) dualOutdoorVal.textContent = String(aqi);
 
     const dualOutdoorChip = document.getElementById("dual-outdoor-chip");
     if (dualOutdoorChip && advice.air?.band) {
@@ -181,9 +197,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const dualOutdoorDesc = document.getElementById("dual-outdoor-desc");
     if (dualOutdoorDesc) {
-      dualOutdoorDesc.textContent = advice.sensitivity?.sensitive
-        ? "Elevated precautions for sensitive members"
-        : "Standard daylight precautions apply";
+      dualOutdoorDesc.textContent = `Ambient air index (${reading.pm25.toFixed(1)} µg/m³ PM2.5)`;
     }
 
     const dualIndoorCadr = document.getElementById("dual-indoor-cadr");
@@ -208,10 +222,14 @@ document.addEventListener("DOMContentLoaded", () => {
       dualIndoorDesc.textContent = `Target 4 ACH for ${advice.purifier.room_area_sqm} m² living area`;
     }
 
-    // Tile 1: PM2.5 & Band Chip
+    // Tile 1: AQI & Band Chip
     const pm25Val = document.getElementById("tile-pm25-val");
     if (pm25Val) {
-      pm25Val.textContent = reading.pm25.toFixed(1);
+      pm25Val.textContent = String(aqi);
+    }
+    const tilePmSub = document.getElementById("tile-pm25-sub");
+    if (tilePmSub && typeof reading.pm25 === "number") {
+      tilePmSub.textContent = `${reading.pm25.toFixed(1)} µg/m³ PM2.5`;
     }
     const pm25Chip = document.getElementById("tile-pm25-chip");
     if (pm25Chip && advice.air?.band) {
@@ -711,8 +729,9 @@ document.addEventListener("DOMContentLoaded", () => {
       circle.setAttribute("r", c.hour === bestHour ? "4.5" : "3");
       circle.setAttribute("class", c.hour === bestHour ? "chart-point fill-emerald-600 stroke-white stroke-2" : "chart-point");
 
+      const aqiVal = pm25ToAqi(c.pm25);
       const title = document.createElementNS(svgNS, "title");
-      title.textContent = `${formatHour(c.hour)}: ${c.pm25.toFixed(1)} µg/m³ PM2.5`;
+      title.textContent = `${formatHour(c.hour)}: AQI ${aqiVal} (${c.pm25.toFixed(1)} µg/m³ PM2.5)`;
       circle.appendChild(title);
       svg.appendChild(circle);
     });
@@ -787,6 +806,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     shareBtn.addEventListener("click", async () => {
       const city = advice.location?.name || inputs.city;
+      const aqi = advice.air?.aqi ?? pm25ToAqi(reading.pm25);
       const pm = reading.pm25 ? reading.pm25.toFixed(1) : "--";
       const band = advice.air?.band?.label || "Advisory";
       const win = advice.windows?.outdoor_exercise?.hour !== undefined
@@ -794,7 +814,7 @@ document.addEventListener("DOMContentLoaded", () => {
         : "Mid-day";
       const cadr = advice.purifier?.min_cadr_m3h || "--";
 
-      const summaryText = `Saans Air Plan for ${city}\nCurrent PM2.5: ${pm} µg/m³ (${band})\nBest Outdoor Window: ${win}\nRecommended Purifier CADR: ${cadr} m³/h (4 ACH target)\nView your personalized plan at ${window.location.origin}`;
+      const summaryText = `Saans Air Plan for ${city}\nCurrent Air Quality: AQI ${aqi} (${pm} µg/m³ PM2.5 - ${band})\nBest Outdoor Window: ${win}\nRecommended Purifier CADR: ${cadr} m³/h (4 ACH target)\nView your personalized plan at ${window.location.origin}`;
 
       try {
         if (navigator.clipboard && navigator.clipboard.writeText) {
