@@ -939,14 +939,17 @@ document.addEventListener("DOMContentLoaded", () => {
       const listEl = document.getElementById(id);
       if (listEl) {
         listEl.textContent = "";
-        (items || []).forEach((txt) => {
-          listEl.appendChild(el("li", txt));
+        (items || []).forEach((item) => {
+          if (typeof item === "object" && item !== null) {
+            const text = item.text || item.statement || item.action || item.suggestion || String(item);
+            listEl.appendChild(el("li", text));
+          } else {
+            listEl.appendChild(el("li", String(item)));
+          }
         });
       }
     };
 
-    fillList("explain-daily-routine", exp.daily_routine);
-    fillList("explain-indoor-tips", exp.indoor_tips);
     fillList("explain-impacts", exp.impact_statements);
     fillList("explain-community", exp.community_actions);
     fillList("explain-watchouts", exp.watch_outs);
