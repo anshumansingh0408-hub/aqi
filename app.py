@@ -4,7 +4,7 @@ Architecture:
 - advisor.py: Pure, stateless deterministic rules engine for health band classification,
   window optimization, CADR purifier sizing, and commute carbon emissions.
 - air_client.py: Open-Meteo atmospheric model geocoding and forecast retrieval.
-- ai_client.py: Gemini explanations and chat answers with strict numeric grounding.
+- ai_client.py: Language model explanations and chat answers with strict numeric grounding.
 - utils.py: Input validation, rate limiting, and sanitization.
 
 All endpoints are stateless: every API call carries the inputs and the server recomputes
@@ -22,6 +22,7 @@ from werkzeug.exceptions import RequestEntityTooLarge
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 from advisor import ACTIVITY_HOURS, EMISSION_FACTORS, PM25_BANDS, generate_advice
+import ai_client
 from ai_client import AI_DISCLAIMER, CONFIG as AI_CONFIG, answer_question, explain_plan
 from air_client import AirDataError, get_air_reading
 from utils import check_rate_limit, sanitize_text_input, validate_inputs
@@ -48,21 +49,24 @@ TRACKER_LOCK = threading.Lock()
 
 @app.context_processor
 def inject_version() -> dict[str, str]:
-    """Provide static asset cache-busting version string to Jinja templates.
+    """Provide static asset cache-busting version string and AI name to templates.
 
     Returns:
-        Dictionary mapping app_version to current version constant.
+        Dictionary mapping app_version and ai_name.
     """
-    return {"app_version": APP_VERSION}
+    return {
+        "app_version": APP_VERSION,
+        "ai_name": ai_client.provider_name(),
+    }
 
 
 def get_api_key() -> str:
-    """Retrieve secret Gemini API key strictly from process environment.
+    """Retrieve secret language model API key from active provider resolution.
 
     Returns:
         Configured API key string or empty string.
     """
-    return os.environ.get("GEMINI_API_KEY", "")
+    return ai_client.resolve_api_key()
 
 
 def client_ip() -> str:
@@ -294,6 +298,7 @@ def _options_payload() -> dict[str, Any]:
         "cooking": ["lpg", "induction", "biomass"],
         "activity_hours": ACTIVITY_HOURS,
         "limits": _options_limits(),
+        "ai_name": ai_client.provider_name(),
     }
 
 
