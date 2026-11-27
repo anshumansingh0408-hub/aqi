@@ -1,9 +1,9 @@
-"""Gemini integration for Saans.
+"""AI integration for Saans supporting Groq and Google Gemini.
 
-The AI receives a compact summary of an already-computed air-quality plan and
+The language model receives a compact summary of an already-computed air-quality plan and
 writes plain-language explanations of it. It never changes numbers. Any figure
 with a measurement unit that is not present in the computed plan is removed from
-the AI output before it reaches the user. If Gemini is unavailable the app builds
+the AI output before it reaches the user. If the language model is unavailable the app builds
 the same explanation from the rules engine output.
 """
 
@@ -18,7 +18,22 @@ from advisor import CLIMATE_NOTE, MEDICAL_NOTE, PM25_BANDS
 from utils import format_pm25, generate_cache_key, sanitize_text_input
 
 # Configuration
-DEFAULT_MODEL: str = "gemini-2.0-flash"
+PROVIDERS: dict[str, dict[str, str]] = {
+    "groq": {
+        "name": "Groq",
+        "url": "https://api.groq.com/openai/v1/chat/completions",
+        "key_env": "GROQ_API_KEY",
+        "model_env": "GROQ_MODEL",
+        "default_model": "openai/gpt-oss-120b",
+    },
+    "gemini": {
+        "name": "Google Gemini",
+        "url_base": "https://generativelanguage.googleapis.com/v1beta/models/",
+        "key_env": "GEMINI_API_KEY",
+        "model_env": "GEMINI_MODEL",
+        "default_model": "gemini-2.0-flash",
+    },
+}
 CONFIG: dict[str, Any] = {
     "REQUEST_TIMEOUT": 40,
     "TEMPERATURE": 0.3,
@@ -54,6 +69,46 @@ FALLBACK_ANSWER: str = (
     "The assistant is currently unavailable. Please refer to the daily routine "
     "and checklist in your plan above, and consult your doctor for medical advice."
 )
+
+
+def get_provider() -> str:
+    """Determine the active language model provider from environment.
+
+    Returns:
+        Provider identifier 'groq', 'gemini', or 'none'.
+    """
+    prov = os.environ.get("AI_PROVIDER", "").strip().lower()
+    if prov in ("groq", "gemini"):
+        return prov
+    if os.environ.get("GROQ_API_KEY", "").strip():
+        return "groq"
+    if os.environ.get("GEMINI_API_KEY", "").strip():
+        return "gemini"
+    return "none"
+
+
+def resolve_api_key() -> str:
+    """Read secret API key for the active provider strictly from environment.
+
+    Returns:
+        Secret key string or empty string.
+    """
+    p = get_provider()
+    if p in PROVIDERS:
+        return os.environ.get(PROVIDERS[p]["key_env"], "").strip()
+    return ""
+
+
+def provider_name() -> str:
+    """Return the display name of the currently active language model provider.
+
+    Returns:
+        Display name string.
+    """
+    p = get_provider()
+    if p in PROVIDERS:
+        return PROVIDERS[p]["name"]
+    return "the AI service"
 
 
 def _clone(val: Any) -> Any:
@@ -337,7 +392,7 @@ def _explain_rules() -> str:
 
 
 def build_explain_prompt(advice: dict[str, Any], city: str, notes: str) -> str:
-    """Generate structured prompt instructing Gemini to explain computed air plan.
+    """Generate structured prompt instructing the language model to explain computed air plan.
 
     Args:
         advice: Computed advisory plan dictionary.
@@ -345,7 +400,7 @@ def build_explain_prompt(advice: dict[str, Any], city: str, notes: str) -> str:
         notes: User lifestyle notes string.
 
     Returns:
-        Full prompt text for Gemini.
+        Full prompt text for the language model.
     """
     ctx = build_context(advice, city)
     schema = _explain_schema_template()
@@ -383,7 +438,7 @@ def build_chat_prompt(advice: dict[str, Any], city: str, question: str) -> str:
 
 
 def _parse_candidate_text(resp_data: dict[str, Any]) -> str:
-    """Extract first candidate text from Gemini response dictionary.
+    """Extract first candidate text from language model response dictionary.
 
     Args:
         resp_data: Decoded response JSON.
@@ -396,22 +451,22 @@ def _parse_candidate_text(resp_data: dict[str, Any]) -> str:
     """
     candidates = resp_data.get("candidates", [])
     if not candidates:
-        raise RuntimeError("AI service returned empty response candidates.")
+        raise RuntimeError("The AI service returned an error.")
     parts = candidates[0].get("content", {}).get("parts", [])
     if not parts or "text" not in parts[0]:
-        raise RuntimeError("AI service response missing text content.")
+        raise RuntimeError("The AI service returned an error.")
     return str(parts[0]["text"])
 
 
 def _build_gemini_payload(prompt: str, expect_json: bool) -> dict[str, Any]:
-    """Build payload dictionary for Gemini API.
+    """Build payload dictionary for Gemini endpoint.
 
     Args:
         prompt: Full prompt string.
         expect_json: Whether JSON mime type is expected.
 
     Returns:
-        Gemini JSON payload dict.
+        Language model JSON payload dict.
     """
     gen_cfg: dict[str, Any] = {
         "temperature": CONFIG["TEMPERATURE"],
@@ -422,50 +477,161 @@ def _build_gemini_payload(prompt: str, expect_json: bool) -> dict[str, Any]:
     return {"contents": [{"parts": [{"text": prompt}]}], "generationConfig": gen_cfg}
 
 
-def _post_gemini(url: str, headers: dict[str, str], payload: dict[str, Any]) -> requests.Response:
-    """Execute HTTP POST to Gemini endpoint.
+def _build_groq_payload(model: str, prompt: str, expect_json: bool) -> dict[str, Any]:
+    """Build payload dictionary for Groq chat completions API.
 
     Args:
-        url: Request URL string.
-        headers: Request headers.
-        payload: JSON payload dict.
+        model: Model name string.
+        prompt: User prompt string.
+        expect_json: Whether JSON response format is required.
 
     Returns:
-        Requests Response object.
+        Groq chat completions payload dictionary.
+    """
+    body: dict[str, Any] = {
+        "model": model,
+        "messages": [{"role": "user", "content": prompt}],
+        "temperature": CONFIG["TEMPERATURE"],
+        "max_tokens": CONFIG["MAX_OUTPUT_TOKENS"],
+    }
+    if expect_json:
+        body["response_format"] = {"type": "json_object"}
+    return body
+
+
+def _post_llm(url: str, headers: dict[str, str], payload: dict[str, Any]) -> requests.Response:
+    """Execute HTTP POST with standard configuration timeout.
+
+    Args:
+        url: Endpoint URL string.
+        headers: Request headers dictionary.
+        payload: Request payload dictionary.
+
+    Returns:
+        HTTP response object.
 
     Raises:
         RuntimeError: If request times out or connection fails.
     """
     try:
         return requests.post(url, headers=headers, json=payload, timeout=CONFIG["REQUEST_TIMEOUT"])
+    except (requests.Timeout, requests.ConnectionError, requests.RequestException):
+        raise RuntimeError("The AI service did not respond.")
+
+
+def _parse_groq_text(resp: requests.Response) -> str:
+    """Extract reply text from Groq completion response.
+
+    Args:
+        resp: HTTP response object.
+
+    Returns:
+        Generated content text.
+
+    Raises:
+        RuntimeError: If status is non-200 or content is empty.
+    """
+    if resp.status_code != 200:
+        raise RuntimeError("The AI service returned an error.")
+    try:
+        content = resp.json().get("choices", [{}])[0].get("message", {}).get("content", "")
     except Exception:
-        raise RuntimeError("AI service request failed or timed out.")
+        raise RuntimeError("The AI service returned an error.")
+    if not content or not str(content).strip():
+        raise RuntimeError("The AI service returned an error.")
+    return str(content)
 
 
-def call_gemini(prompt: str, api_key: str, expect_json: bool) -> str:
-    """Call Google Gemini generative API via HTTP POST.
+def _call_groq(prompt: str, api_key: str, expect_json: bool) -> str:
+    """Execute chat completion call to Groq endpoint.
 
     Args:
         prompt: Full prompt string.
-        api_key: Secret Google Gemini API key.
-        expect_json: Whether to enforce JSON response mime type.
+        api_key: Groq API key string.
+        expect_json: Whether JSON response mode is required.
+
+    Returns:
+        Generated reply text string from choices[0].message.content.
+
+    Raises:
+        RuntimeError: On network, status, or parsing failure.
+    """
+    cfg = PROVIDERS["groq"]
+    model = os.environ.get(cfg["model_env"], cfg["default_model"])
+    headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
+    body = _build_groq_payload(model, prompt, expect_json)
+    resp = _post_llm(cfg["url"], headers, body)
+    return _parse_groq_text(resp)
+
+
+def _parse_gemini_text(resp: requests.Response) -> str:
+    """Extract reply text from Gemini completion response.
+
+    Args:
+        resp: HTTP response object.
+
+    Returns:
+        Generated content text.
+
+    Raises:
+        RuntimeError: If status is non-200 or content is empty.
+    """
+    if resp.status_code != 200:
+        raise RuntimeError("The AI service returned an error.")
+    try:
+        content = _parse_candidate_text(resp.json())
+    except Exception:
+        raise RuntimeError("The AI service returned an error.")
+    if not content or not str(content).strip():
+        raise RuntimeError("The AI service returned an error.")
+    return str(content)
+
+
+def _call_gemini(prompt: str, api_key: str, expect_json: bool) -> str:
+    """Execute chat completion call to Google Gemini endpoint.
+
+    Args:
+        prompt: Full prompt string.
+        api_key: Google Gemini API key string.
+        expect_json: Whether JSON mime type is required.
+
+    Returns:
+        Generated reply text string.
+
+    Raises:
+        RuntimeError: On network, status, or parsing failure.
+    """
+    cfg = PROVIDERS["gemini"]
+    model = os.environ.get(cfg["model_env"], cfg["default_model"])
+    url = f"{cfg['url_base']}{model}:generateContent"
+    headers = {"x-goog-api-key": api_key, "Content-Type": "application/json"}
+    resp = _post_llm(url, headers, _build_gemini_payload(prompt, expect_json))
+    return _parse_gemini_text(resp)
+
+
+def call_llm(prompt: str, api_key: str, expect_json: bool) -> str:
+    """Dispatch language model request to active provider implementation.
+
+    Args:
+        prompt: Full prompt string.
+        api_key: Provider API key.
+        expect_json: Whether JSON output is expected.
 
     Returns:
         Generated text string from the model.
 
     Raises:
-        RuntimeError: On network, HTTP, or candidate errors without leaking secrets.
+        RuntimeError: On network, HTTP, or response formatting failure.
     """
-    model = os.environ.get("GEMINI_MODEL", DEFAULT_MODEL)
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
-    headers = {"x-goog-api-key": api_key, "Content-Type": "application/json"}
-    resp = _post_gemini(url, headers, _build_gemini_payload(prompt, expect_json))
-    if resp.status_code != 200:
-        raise RuntimeError("AI service returned an unsuccessful HTTP status.")
-    try:
-        return _parse_candidate_text(resp.json())
-    except Exception:
-        raise RuntimeError("Failed to parse AI service response.")
+    p = get_provider()
+    if p == "groq":
+        return _call_groq(prompt, api_key, expect_json)
+    if p == "gemini":
+        return _call_gemini(prompt, api_key, expect_json)
+    raise RuntimeError("The AI service returned an error.")
+
+
+call_gemini = call_llm
 
 
 def parse_json_response(text: str) -> dict[str, Any]:
@@ -870,19 +1036,19 @@ def fallback_explanation(advice: dict[str, Any], city: str) -> dict[str, Any]:
 def _run_ai_pipeline(
     advice: dict[str, Any], city: str, notes: str, api_key: str
 ) -> dict[str, Any]:
-    """Execute Gemini prompt, parse, validate, and drop ungrounded numbers.
+    """Execute language model prompt, parse, validate, and drop ungrounded numbers.
 
     Args:
         advice: Advisory plan dictionary.
         city: City name string.
         notes: User lifestyle notes.
-        api_key: Gemini API key.
+        api_key: Active provider API key.
 
     Returns:
         Cleaned AI response dictionary with source and grounding metadata.
     """
     prompt = build_explain_prompt(advice, city, notes)
-    raw = call_gemini(prompt, api_key, expect_json=True)
+    raw = call_llm(prompt, api_key, expect_json=True)
     data = parse_json_response(raw)
     valid = validate_explanation(data)
     allowed = collect_allowed_numbers(advice)
@@ -903,7 +1069,7 @@ def _handle_ai_plan_result(
         advice: Advisory plan dictionary.
         city: Sanitized city string.
         notes: Sanitized lifestyle notes string.
-        api_key: Gemini API key.
+        api_key: Active provider API key.
         key: Cache key string.
 
     Returns:
@@ -929,14 +1095,15 @@ def explain_plan(
         advice: Computed advisory plan dictionary.
         city: Target city name string.
         notes: User lifestyle notes string.
-        api_key: Google Gemini API key.
+        api_key: Secret API key for the active provider.
 
     Returns:
         Explanation dictionary adhering to the 7 standard keys with metadata.
     """
     c_city = sanitize_text_input(city, 60)
     c_notes = sanitize_text_input(notes, CONFIG["MAX_NOTES_CHARS"])
-    key = generate_cache_key("explain", build_context(advice, c_city), c_city, c_notes)
+    prov = get_provider()
+    key = generate_cache_key("explain", prov, build_context(advice, c_city), c_city, c_notes)
     cached = get_cached(key)
     if cached is not None:
         return cached
@@ -970,14 +1137,14 @@ def _execute_chat_query(
         advice: Plan dict.
         city: City name.
         question: User query.
-        api_key: Gemini key.
+        api_key: Provider API key.
         key: Cache key.
 
     Returns:
         Chat response dictionary.
     """
     try:
-        raw = call_gemini(build_chat_prompt(advice, city, question), api_key, expect_json=False)
+        raw = call_llm(build_chat_prompt(advice, city, question), api_key, expect_json=False)
         if find_ungrounded(raw, collect_allowed_numbers(advice)):
             return _chat_fallback_ungrounded()
         out = {"answer": raw.strip(), "source": "ai", "disclaimer": AI_DISCLAIMER}
@@ -1014,7 +1181,7 @@ def answer_question(
         advice: Plan dict.
         city: City name.
         question: Query.
-        api_key: API key.
+        api_key: Active provider API key.
 
     Returns:
         Response dictionary.
@@ -1023,7 +1190,8 @@ def answer_question(
         ValueError: If question is empty.
     """
     c_q, c_city = _validate_chat_question(question), sanitize_text_input(city, 60)
-    key = generate_cache_key("chat", build_context(advice, c_city), c_city, c_q)
+    prov = get_provider()
+    key = generate_cache_key("chat", prov, build_context(advice, c_city), c_city, c_q)
     cached = get_cached(key)
     if cached is not None:
         return cached
