@@ -109,6 +109,30 @@ def pm25_band(pm25: float) -> dict[str, Any]:
     return dict(PM25_BANDS[5])
 
 
+def pm25_to_aqi(pm25: float) -> int:
+    """Convert PM2.5 concentration in ug/m3 to India CPCB National AQI.
+
+    Args:
+        pm25: Float PM2.5 concentration.
+
+    Returns:
+        Calculated integer Air Quality Index (0 to 500).
+    """
+    if not isinstance(pm25, (int, float)) or isinstance(pm25, bool) or math.isnan(pm25) or pm25 < 0:
+        return 0
+    if pm25 <= 30.0:
+        return round((50.0 / 30.0) * pm25)
+    if pm25 <= 60.0:
+        return round(50.0 + (50.0 / 30.0) * (pm25 - 30.0))
+    if pm25 <= 90.0:
+        return round(100.0 + (100.0 / 30.0) * (pm25 - 60.0))
+    if pm25 <= 120.0:
+        return round(200.0 + (100.0 / 30.0) * (pm25 - 90.0))
+    if pm25 <= 250.0:
+        return round(300.0 + (100.0 / 130.0) * (pm25 - 120.0))
+    return min(500, round(400.0 + (100.0 / 130.0) * (pm25 - 250.0)))
+
+
 def household_sensitivity(household: dict[str, Any]) -> dict[str, Any]:
     """Assess household vulnerability to air pollution based on demographic profile.
 
@@ -668,6 +692,7 @@ def _build_air_summary(air: dict[str, Any], pm25: float) -> dict[str, Any]:
     """
     return {
         "pm25": pm25,
+        "aqi": pm25_to_aqi(pm25),
         "band": pm25_band(pm25),
         "source": air.get("source", "live"),
         "observed_at": air.get("observed_at", ""),

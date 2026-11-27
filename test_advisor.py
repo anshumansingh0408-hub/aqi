@@ -20,6 +20,7 @@ from advisor import (
     household_sensitivity,
     indoor_checklist,
     pm25_band,
+    pm25_to_aqi,
     purifier_sizing,
 )
 
@@ -52,6 +53,22 @@ class TestAdvisorBandsAndTiers(unittest.TestCase):
             pm25_band(float("nan"))
         with self.assertRaises(ValueError):
             pm25_band(True)  # type: ignore[arg-type]
+
+    def test_pm25_to_aqi_conversion(self) -> None:
+        """Verify CPCB NAQI conversion across all standard breakpoints."""
+        self.assertEqual(pm25_to_aqi(0.0), 0)
+        self.assertEqual(pm25_to_aqi(15.0), 25)
+        self.assertEqual(pm25_to_aqi(30.0), 50)
+        self.assertEqual(pm25_to_aqi(45.0), 75)
+        self.assertEqual(pm25_to_aqi(60.0), 100)
+        self.assertEqual(pm25_to_aqi(75.0), 150)
+        self.assertEqual(pm25_to_aqi(90.0), 200)
+        self.assertEqual(pm25_to_aqi(105.0), 250)
+        self.assertEqual(pm25_to_aqi(120.0), 300)
+        self.assertEqual(pm25_to_aqi(185.0), 350)
+        self.assertEqual(pm25_to_aqi(250.0), 400)
+        self.assertEqual(pm25_to_aqi(380.0), 500)
+        self.assertEqual(pm25_to_aqi(-10.0), 0)
 
     def test_advice_tier_all_bands(self) -> None:
         """Verify action tiers for all six bands in general and sensitive modes."""
