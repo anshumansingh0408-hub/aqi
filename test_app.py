@@ -94,6 +94,35 @@ class TestAppRoutesAndOptions(unittest.TestCase):
         self.assertIn("Approximate", data["bands_note"])
         self.assertIn("limits", data)
         self.assertEqual(data["limits"]["room_area_sqm"], [5, 200])
+        self.assertIn("ai_name", data)
+        import ai_client
+        self.assertEqual(data["ai_name"], ai_client.provider_name())
+
+    def test_rendered_pages_contain_active_ai_name(self) -> None:
+        """Verify pages contain active ai_name and do not contain other provider."""
+        import ai_client
+        for prov, other in (("groq", "Gemini"), ("gemini", "Groq")):
+            with patch.dict(os.environ, {"AI_PROVIDER": prov}):
+                expected_name = ai_client.PROVIDERS[prov]["name"]
+                for path in ("/", "/create", "/about"):
+                    res = self.client.get(path)
+                    html = res.get_data(as_text=True)
+                    self.assertIn(expected_name, html, f"Missing {expected_name} in {path}")
+                    self.assertNotIn(other, html, f"Found {other} in {path} when active is {prov}")
+
+    def test_no_hardcoded_provider_in_templates_or_js(self) -> None:
+        """Verify no template or static JS file hardcodes Gemini or Groq."""
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        target_dirs = [os.path.join(base_dir, "templates"), os.path.join(base_dir, "static", "js")]
+        for d in target_dirs:
+            for root, _, files in os.walk(d):
+                for f in files:
+                    if f.endswith((".html", ".js")):
+                        p = os.path.join(root, f)
+                        with open(p, "r", encoding="utf-8") as fh:
+                            content = fh.read().lower()
+                        self.assertNotIn("gemini", content, f"Hardcoded 'gemini' in {f}")
+                        self.assertNotIn("groq", content, f"Hardcoded 'groq' in {f}")
 
 
 class TestAppPlanEndpoint(unittest.TestCase):
@@ -279,7 +308,8 @@ class TestAppExplainAndAsk(unittest.TestCase):
         """Verify explain endpoint succeeds and delegates to fallback when key is unset."""
         mock_air.return_value = _mock_air_data()
         mock_exp.return_value = {"summary": "Fallback summary", "source": "fallback"}
-        with patch.dict("os.environ", {"GEMINI_API_KEY": ""}):
+        env_empty = {"GROQ_API_KEY": "", "GEMINI_API_KEY": "", "AI_PROVIDER": ""}
+        with patch.dict("os.environ", env_empty):
             res = self.client.post("/api/explain", json=_valid_payload())
         self.assertEqual(res.status_code, 200)
         self.assertEqual(res.get_json()["explanation"]["source"], "fallback")
@@ -289,11 +319,13 @@ class TestAppExplainAndAsk(unittest.TestCase):
     def test_client_supplied_api_key_ignored(
         self, mock_air: MagicMock, mock_exp: MagicMock
     ) -> None:
-        """Verify user-provided api_key is never forwarded to explain_plan."""
+        """Verify user-provided api_key, provider, or model is never forwarded."""
         mock_air.return_value = _mock_air_data()
         mock_exp.return_value = {"summary": "Safe", "source": "ai"}
         payload = _valid_payload()
         payload["api_key"] = "attacker-provided-key"
+        payload["provider"] = "attacker-provider"
+        payload["model"] = "attacker-model"
         self.client.post("/api/explain", json=payload)
         forwarded_key = mock_exp.call_args[0][3]
         self.assertNotEqual(forwarded_key, "attacker-provided-key")
@@ -415,9 +447,10 @@ class TestAppSecurityAndRateLimiting(unittest.TestCase):
         self.assertEqual(res_405.get_json()["code"], "METHOD_NOT_ALLOWED")
 
     def test_no_body_contains_gemini_api_key(self) -> None:
-        """Verify responses never echo the secret GEMINI_API_KEY identifier."""
+        """Verify responses never echo the secret GEMINI_API_KEY or GROQ_API_KEY identifier."""
         res = self.client.get("/api/options")
         self.assertNotIn("GEMINI_API_KEY", res.get_data(as_text=True))
+        self.assertNotIn("GROQ_API_KEY", res.get_data(as_text=True))
 
 
 class TestFrontendViewsAndAssets(unittest.TestCase):
