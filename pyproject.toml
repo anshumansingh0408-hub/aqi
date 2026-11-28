@@ -1,8 +1,32 @@
+[project]
+name = "saans"
+version = "1.0.3"
+description = "GenAI urban air quality advisory assistant for Indian cities"
+requires-python = ">=3.9"
+license = {text = "MIT"}
+
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.backends._legacy:_Backend"
+
 [tool.flake8]
 max-line-length = 100
-exclude = "venv, __pycache__"
-ignore = "E501"
+exclude = "venv,__pycache__,.git"
 
 [tool.pytest.ini_options]
-testpaths = ["test_advisor.py", "test_utils.py", "test_quality.py", "test_app.py", "test_air_client.py", "test_ai_client.py"]
+testpaths = [
+    "test_advisor.py",
+    "test_utils.py",
+    "test_quality.py",
+    "test_app.py",
+    "test_air_client.py",
+    "test_ai_client.py",
+]
+filterwarnings = ["ignore::DeprecationWarning"]
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
 

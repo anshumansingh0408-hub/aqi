@@ -8,6 +8,7 @@ the same explanation from the rules engine output.
 """
 
 import json
+import logging
 import os
 import re
 import threading
@@ -16,6 +17,8 @@ from typing import Any, Optional
 import requests
 from advisor import CLIMATE_NOTE, MEDICAL_NOTE, PM25_BANDS
 from utils import format_pm25, generate_cache_key, sanitize_text_input
+
+logger = logging.getLogger(__name__)
 
 # Configuration
 PROVIDERS: dict[str, dict[str, str]] = {
@@ -631,6 +634,7 @@ def call_llm(prompt: str, api_key: str, expect_json: bool) -> str:
     raise RuntimeError("The AI service returned an error.")
 
 
+# Backward-compatible alias retained for external test references.
 call_gemini = call_llm
 
 
@@ -1079,7 +1083,8 @@ def _handle_ai_plan_result(
         res = _run_ai_pipeline(advice, city, notes, api_key)
         set_cached(key, res)
         return res
-    except Exception:
+    except Exception as exc:
+        logger.warning("AI explain pipeline failed, using fallback: %s", exc)
         fb = fallback_explanation(advice, city)
         fb["ai_error"] = True
         fb["disclaimer"] = AI_DISCLAIMER
@@ -1150,7 +1155,8 @@ def _execute_chat_query(
         out = {"answer": raw.strip(), "source": "ai", "disclaimer": AI_DISCLAIMER}
         set_cached(key, out)
         return out
-    except Exception:
+    except Exception as exc:
+        logger.warning("AI chat query failed, using fallback: %s", exc)
         return {"answer": FALLBACK_ANSWER, "source": "fallback", "disclaimer": AI_DISCLAIMER}
 
 

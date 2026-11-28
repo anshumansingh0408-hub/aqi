@@ -6,10 +6,13 @@ nearby monitoring stations.
 """
 
 import datetime
+import logging
 import threading
 import time
 from typing import Any, Optional
 import requests
+
+logger = logging.getLogger(__name__)
 
 # Configuration
 GEOCODE_URL: str = "https://geocoding-api.open-meteo.com/v1/search"
@@ -126,7 +129,8 @@ def _get_json(url: str, params: dict[str, Any]) -> dict[str, Any]:
     """
     try:
         resp = requests.get(url, params=params, timeout=CONFIG["TIMEOUT_SECONDS"])
-    except (requests.Timeout, requests.ConnectionError, requests.RequestException):
+    except (requests.Timeout, requests.ConnectionError, requests.RequestException) as exc:
+        logger.warning("Air quality HTTP request failed: %s", exc)
         raise AirDataError("AIR_UNAVAILABLE", "The air quality service is not responding.")
     if resp.status_code != 200:
         raise AirDataError("AIR_UNAVAILABLE", "The air quality service is not responding.")

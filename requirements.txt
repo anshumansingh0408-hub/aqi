@@ -2,4 +2,5 @@ flask
 requests
 flask-compress
 gunicorn
+python-dotenv
 

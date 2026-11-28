@@ -469,6 +469,7 @@ class TestFrontendViewsAndAssets(unittest.TestCase):
             "/static/js/create.js",
             "/static/js/plan.js",
             "/static/js/landing.js",
+            "/static/js/about.js",
         ]
         for path in assets:
             res = self.client.get(path)

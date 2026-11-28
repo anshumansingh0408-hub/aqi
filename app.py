@@ -11,11 +11,13 @@ All endpoints are stateless: every API call carries the inputs and the server re
 the advice.
 """
 
+import logging
 import os
 import threading
 import time
 from typing import Any, Optional
 
+from dotenv import load_dotenv
 from flask import Flask, Response, g, jsonify, render_template, request
 from flask_compress import Compress
 from werkzeug.exceptions import RequestEntityTooLarge
@@ -27,14 +29,22 @@ from ai_client import AI_DISCLAIMER, CONFIG as AI_CONFIG, answer_question, expla
 from air_client import AirDataError, get_air_reading
 from utils import check_rate_limit, sanitize_text_input, validate_inputs
 
+load_dotenv()
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s %(message)s")
+
 app = Flask(__name__)
-# x_for=1 trusts one proxy hop (Railway). Without a proxy a client could spoof X-Forwarded-For
-# and dodge the rate limit.
+# x_for=1 trusts one proxy hop (Render/Railway). Without a proxy a client could
+# spoof X-Forwarded-For and dodge the rate limit.
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1)
 Compress(app)
-app.config["MAX_CONTENT_LENGTH"] = 32 * 1024
 
-APP_VERSION = "1.0.2"
+# Maximum inbound request payload size in bytes.
+MAX_PAYLOAD_BYTES: int = 32 * 1024
+app.config["MAX_CONTENT_LENGTH"] = MAX_PAYLOAD_BYTES
+
+APP_VERSION = "1.0.3"
 
 APP_CONFIG: dict[str, int] = {
     "RATE_LIMIT_GENERAL": 30,
@@ -206,7 +216,8 @@ def build_advice_or_error(
     air, err_resp = _resolve_air(cleaned)
     if err_resp is not None:
         return None, None, err_resp
-    assert air is not None
+    if air is None:
+        return None, None, error_response("Air data could not be resolved.", "AIR_ERROR", 502)
     advice = generate_advice(cleaned, air)
     advice["location"] = air.get("location")
     advice["source_note"] = air.get("source_note")
@@ -507,11 +518,14 @@ def route_api_plan() -> tuple[Response, int]:
     data, err_resp = parse_body()
     if err_resp is not None:
         return err_resp
-    assert data is not None
+    if data is None:
+        return error_response("Invalid request body.", "BAD_REQUEST", 400)
     advice, _cleaned, build_err = build_advice_or_error(data)
     if build_err is not None:
         return build_err
-    assert advice is not None
+    if advice is None:
+        logger.error("build_advice_or_error returned None without an error")
+        return error_response("Plan computation failed.", "SERVER_ERROR", 500)
     return jsonify({"advice": advice, "reading": reading_summary(advice)}), 200
 
 
@@ -528,11 +542,14 @@ def route_api_explain() -> tuple[Response, int]:
     data, err_resp = parse_body()
     if err_resp is not None:
         return err_resp
-    assert data is not None
+    if data is None:
+        return error_response("Invalid request body.", "BAD_REQUEST", 400)
     advice, cleaned, build_err = build_advice_or_error(data)
     if build_err is not None:
         return build_err
-    assert advice is not None and cleaned is not None
+    if advice is None or cleaned is None:
+        logger.error("build_advice_or_error returned None without an error")
+        return error_response("Plan computation failed.", "SERVER_ERROR", 500)
     explanation = explain_plan(advice, cleaned["city"], cleaned["notes"], get_api_key())
     payload = {
         "explanation": explanation,
@@ -592,14 +609,17 @@ def route_api_ask() -> tuple[Response, int]:
     data, err_resp = parse_body()
     if err_resp is not None:
         return err_resp
-    assert data is not None
+    if data is None:
+        return error_response("Invalid request body.", "BAD_REQUEST", 400)
     q, q_err = _extract_user_question(data)
     if q_err is not None:
         return q_err
     advice, cleaned, build_err = build_advice_or_error(data)
     if build_err is not None:
         return build_err
-    assert advice is not None and cleaned is not None
+    if advice is None or cleaned is None:
+        logger.error("build_advice_or_error returned None without an error")
+        return error_response("Plan computation failed.", "SERVER_ERROR", 500)
     res = answer_question(advice, cleaned["city"], q, get_api_key())
     return jsonify(_format_ask_payload(res, advice)), 200
 
